@@ -214,9 +214,27 @@ ARCHITECTURE arch OF ghrd_top IS
 	SIGNAL hps_cold_reset_n: STD_LOGIC;
 	
 	
-	SIGNAL multiplier_a_in_sig : STD_LOGIC_VECTOR(7 downto 0);
-	SIGNAL multiplier_b_in_sig : STD_LOGIC_VECTOR(7 downto 0);
-	SIGNAL multiplier_out_sig : STD_LOGIC_VECTOR(15 downto 0);
+	--SIGNAL multiplier_a_in_sig : STD_LOGIC_VECTOR(7 downto 0);
+	--SIGNAL multiplier_b_in_sig : STD_LOGIC_VECTOR(7 downto 0);
+	--SIGNAL multiplier_out_sig : STD_LOGIC_VECTOR(15 downto 0);
+	
+	
+	SIGNAL trivium_key0_sig : STD_LOGIC_VECTOR(15 downto 0);
+	SIGNAL trivium_key1_sig : STD_LOGIC_VECTOR(31 downto 0);
+	SIGNAL trivium_key2_sig : STD_LOGIC_VECTOR(31 downto 0);
+	
+	SIGNAL trivium_iv0_sig : STD_LOGIC_VECTOR(15 downto 0);
+	SIGNAL trivium_iv1_sig : STD_LOGIC_VECTOR(31 downto 0);
+	SIGNAL trivium_iv2_sig : STD_LOGIC_VECTOR(31 downto 0);
+	
+	SIGNAL trivium_N0_sig : STD_LOGIC_VECTOR(15 downto 0);
+	SIGNAL trivium_N1_sig : STD_LOGIC_VECTOR(15 downto 0);
+	
+	SIGNAL trivium_start_sig : STD_LOGIC;
+	SIGNAL trivium_keyStream_sig : STD_LOGIC;
+	
+	
+	
 	
 --	SIGNAL LEDs : STD_LOGIC_VECTOR(9 downto 0);
 	
@@ -304,7 +322,20 @@ ARCHITECTURE arch OF ghrd_top IS
 				led_external_connection_export        : out   std_logic_vector(9 downto 0);
 				multiplier_ina_external_connection_export  : out   std_logic_vector(7 downto 0)  := (others => 'X'); -- export
 				multiplier_inb_external_connection_export : out  std_logic_vector(7 downto 0)  := (others => 'X');
-            multiplier_out_external_connection_export : in   std_logic_vector(15 downto 0)                    
+            multiplier_out_external_connection_export : in   std_logic_vector(15 downto 0);
+
+				key0_external_connection_export        : out   std_logic_vector(15 downto 0);
+            key1_external_connection_export        : out   std_logic_vector(31 downto 0);                    -- export
+            iv0_external_connection_export         : out   std_logic_vector(15 downto 0);                    -- export
+            key2_external_connection_export        : out   std_logic_vector(31 downto 0);                    -- export
+            iv1_external_connection_export         : out   std_logic_vector(31 downto 0);                    -- export
+            iv2_external_connection_export         : out   std_logic_vector(31 downto 0);                    -- export
+            n0_external_connection_export          : out   std_logic_vector(31 downto 0);                    -- export
+            n1_external_connection_export          : out   std_logic_vector(31 downto 0);                    -- export
+            start_external_connection_export       : out   std_logic;                                        -- export
+            keystream_external_connection_export   : in    std_logic                     := 'X';             -- export
+            clk_trivium_external_connection_export : out   std_logic       
+				
         );
     end component soc_system;
 	
@@ -330,18 +361,25 @@ ARCHITECTURE arch OF ghrd_top IS
 		);
 	end component altera_edge_detector;
 	
---	component led_logic is
---		port (
---			clk: in std_logic;
---			led_bus : out std_logic_vector(9 downto 0)
---		);
---	end component led_logic;
+	component trivium
+		port( 
+		clk 		   : in std_logic;
+		key2,iv2 	   : in std_logic_vector(31 downto 0);
+		key1,iv1 	   : in std_logic_vector(31 downto 0);
+		key0,iv0 	   : in std_logic_vector(15 downto 0);
+		--reset 	   : in std_logic;
+		start		   : in std_logic;
+		N1, N0 		   : in std_logic_vector(31 downto 0);
+		keystream          : out std_logic		
+	);
+	end component trivium;
+
 	
-	component eightBitMultiplier is
-		port(input_a, input_b : in STD_LOGIC_VECTOR(7 downto 0);
-			output : out STD_LOGIC_VECTOR(15 downto 0)
-		);
-	end component eightBitMultiplier;
+--	component eightBitMultiplier is
+--		port(input_a, input_b : in STD_LOGIC_VECTOR(7 downto 0);
+--			output : out STD_LOGIC_VECTOR(15 downto 0)
+--		);
+--	end component eightBitMultiplier;
 
 	
 		
@@ -454,10 +492,22 @@ BEGIN
             hps_0_f2h_warm_reset_req_reset_n      => hps_warm_reset_n,       --  hps_0_f2h_warm_reset_req.reset_n
             hps_0_f2h_debug_reset_req_reset_n     => hps_debug_reset_n,      -- hps_0_f2h_debug_reset_req.reset_n
             hps_0_f2h_cold_reset_req_reset_n      => hps_cold_reset_n,        --  hps_0_f2h_cold_reset_req.reset_n
-				led_external_connection_export        => LEDR,
-				multiplier_ina_external_connection_export => multiplier_a_in_sig,
-				multiplier_inb_external_connection_export => multiplier_b_in_sig,
-				multiplier_out_external_connection_export => multiplier_out_sig
+				--led_external_connection_export        => LEDR,
+				--multiplier_ina_external_connection_export => multiplier_a_in_sig,
+				--multiplier_inb_external_connection_export => multiplier_b_in_sig,
+				--multiplier_out_external_connection_export => multiplier_out_sig,
+				
+				key0_external_connection_export        => trivium_key0_sig,        --        key0_external_connection.export
+            key1_external_connection_export        => trivium_key1_sig,        --        key1_external_connection.export
+            iv0_external_connection_export         => trivium_iv0_sig,         --         iv0_external_connection.export
+            key2_external_connection_export        => trivium_key2_sig,        --        key2_external_connection.export
+            iv1_external_connection_export         => trivium_iv1_sig,         --         iv1_external_connection.export
+            iv2_external_connection_export         => trivium_iv2_sig,         --         iv2_external_connection.export
+            n0_external_connection_export          => trivium_N0_sig,          --          n0_external_connection.export
+            n1_external_connection_export          => trivium_N1_sig,          --          n1_external_connection.export
+            start_external_connection_export       => trivium_start_sig,       --       start_external_connection.export
+            keystream_external_connection_export   => trivium_keyStream_sig,   --   keystream_external_connection.export
+            clk_trivium_external_connection_export => CLOCK_50  -- clk_trivium_external_connection.export			
         );
 		  
 	-- OUR COMPONET IS HEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
@@ -467,13 +517,37 @@ BEGIN
 --			led_bus => LEDR
 --	);
 
+	
 
-	eightBitMult_inst : COMPONENT eightBitMultiplier
+
+
+	trivium_inst : COMPONENT trivium
 		PORT MAP (
-			input_a => multiplier_a_in_sig,
-			input_b => multiplier_b_in_sig,
-			output => multiplier_out_sig		
+			clk => CLOCK_50,
+			key0 => trivium_key0_sig,
+			key1 => trivium_key1_sig, 
+			key2 => trivium_key2_sig,
+			
+			iv0 => trivium_iv0_sig,
+			iv1 => trivium_iv1_sig,
+			iv2 => trivium_iv2_sig,
+			
+			start => trivium_start_sig,
+			
+			N0 => trivium_N0_sig,
+			N1 => trivium_N1_sig,
+			
+			keystream => trivium_keyStream_sig
 		);
+		
+	
+
+--	eightBitMult_inst : COMPONENT eightBitMultiplier
+--		PORT MAP (
+--			input_a => multiplier_a_in_sig,
+--			input_b => multiplier_b_in_sig,
+--			output => multiplier_out_sig		
+--		);
 --
 --component eightBitMultiplier is
 --		port(input_a, input_b : in STD_LOGIC_VECTOR(7 downto 0);
