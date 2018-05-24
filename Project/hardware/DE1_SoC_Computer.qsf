@@ -969,17 +969,29 @@ set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
 set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
 #set_global_assignment -name VERILOG_FILE hex_decoder.v
 set_global_assignment -name FITTER_EFFORT "AUTO FIT"
+set_global_assignment -name VHDL_FILE shift_register.vhd
+set_global_assignment -name VHDL_FILE pixel_out_counter.vhd
+set_global_assignment -name VHDL_FILE pixel_counter.vhd
+set_global_assignment -name VHDL_FILE Gradient.vhd
+set_global_assignment -name VHDL_FILE generic_shift_reg.vhd
+set_global_assignment -name VHDL_FILE Filtering.vhd
+set_global_assignment -name VHDL_FILE Distributor.vhd
+set_global_assignment -name VHDL_FILE Convolution.vhd
+set_global_assignment -name VHDL_FILE conv_sys.vhd
+set_global_assignment -name VHDL_FILE Conv_FSM.vhd
+set_global_assignment -name VHDL_FILE Buffer_Module.vhd
 set_global_assignment -name VHDL_FILE synthesis/computer_system_rst_controller_003.vhd
 set_global_assignment -name VHDL_FILE synthesis/computer_system_rst_controller_001.vhd
 set_global_assignment -name VHDL_FILE synthesis/computer_system_rst_controller.vhd
 set_global_assignment -name VHDL_FILE synthesis/computer_system_f2h_mem_window_ff800000.vhd
 set_global_assignment -name VHDL_FILE synthesis/computer_system_f2h_mem_window_ff600000.vhd
 set_global_assignment -name VHDL_FILE synthesis/computer_system_f2h_mem_window_00000000.vhd
-set_global_assignment -name QIP_FILE submodules/Computer_System_VGA_Subsystem_VGA_PLL_video_pll.qip
-set_global_assignment -name QIP_FILE submodules/Computer_System_System_PLL_sys_pll.qip
-set_global_assignment -name QIP_FILE submodules/Computer_System_Audio_Subsystem_Audio_PLL_audio_pll.qip
+set_global_assignment -name QIP_FILE submodules/Computer_System_VGA_Subsystem_VGA_PLL_video_pll.qip -library Computer_System
+set_global_assignment -name QIP_FILE submodules/Computer_System_System_PLL_sys_pll.qip -library Computer_System
+set_global_assignment -name QIP_FILE submodules/Computer_System_Audio_Subsystem_Audio_PLL_audio_pll.qip -library Computer_System
 set_global_assignment -name QIP_FILE Computer_System.qip
 set_global_assignment -name VERILOG_FILE hex_decoder.v
 set_global_assignment -name VERILOG_FILE DE1_SoC_Computer.v
 set_global_assignment -name SDC_FILE DE1_SoC_Computer.sdc
+set_global_assignment -name VHDL_FILE filter_interface.vhd
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
