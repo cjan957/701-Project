@@ -116,10 +116,6 @@
 					"strict" : false
 				},
 				{
-					"name" : "AUD_DACDAT",
-					"strict" : false
-				},
-				{
 					"name" : "HEX0[0]",
 					"strict" : false
 				},
@@ -269,6 +265,10 @@
 				},
 				{
 					"name" : "LEDR[9]",
+					"strict" : false
+				},
+				{
+					"name" : "AUD_DACDAT",
 					"strict" : false
 				},
 				{

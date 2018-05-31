@@ -37,15 +37,30 @@
     #include "socal/socal.h"
     #include "socal/hps.h"
     #include "socal/alt_gpio.h"
+	
+	
+	
+	//light
+    //#define LW_REGS_BASE ( ALT_STM_OFST )
+	//#define LW_REGS_SPAN ( 0x4 ) //64 MB with 32 bit adress space this is 256 MB
+	#define LW_REGS_MASK ( FILTER_0_LW_SPAN - 1 )
 
-    //#define HW_REGS_BASE ( ALT_STM_OFST )
-	#define HW_REGS_BASE ( 0xC0000000 )
+	
+	//heavy
+	#define HW_REGS_BASE ( ALT_STM_OFST )
     #define HW_REGS_SPAN ( 0x04000000 )
     #define HW_REGS_MASK ( HW_REGS_SPAN - 1 )
 
-    //?
+    #define AXI_SPAN ( 0x40000000 )
+	#define AXI_OFFST ( AXI_SPAN - 1)
+	
+	//?
     #define FPGA_AXI_BASE   0xC0000000
     #define FPGA_ONCHIP_BASE      (FPGA_AXI_BASE + ONCHIP_SRAM_BASE)
+	#define HW_FPGA_AXI_SPAN (0x40000000) 
+	
+	#define HW_FPGA_AXI_MASK (HW_FPGA_AXI_SPAN - 1)
+	
     // modified for 640x480
     //  probably through black magic
     // #define FPGA_ONCHIP_SPAN      0x00040000
@@ -68,7 +83,12 @@
     volatile unsigned int * vga_char_ptr = NULL ;
     void *vga_char_virtual_base;
 
-	void *virtual_base;
+	void *hw_virtual_base, *lw_virtual_base;
+	
+	uint64_t* data_hw; 
+	uint32_t* encoding_lw;
+	
+	int fd;
 	
     // pixel macro
     #define VGA_PIXEL(x,y,color) do{\
@@ -100,96 +120,431 @@ int decodeJpeg(struct jpeg_decompress_struct *cinfo, struct bmp_out_struct *bmp_
 int outputBmp(struct bmp_out_struct *bmp_out);
 int outputVGA(struct bmp_out_struct *bmp_out);
 
+#define IMAGE_WIDTH 640
+#define IMAGE_HEIGHT 480
+#define TARGET_PIXEL_COUNT (IMAGE_WIDTH * IMAGE_HEIGHT)/8
+
 #define IM_DECODE decodeJpeg
 #define IM_PROCESS windowFilter
+#define CVT2GRYSCALE cvt2Gray
 #define IM_OUTPUT outputVGA
 
-int medianFilter(unsigned char values[9]) {
-    // Sort values like a horrible person
-    int sorted = 0;
-    while (!sorted) {
-        sorted = 1;
-        for (int i=1; i<9; ++i) {
-            if (values[i-1] > values[i]) {
-                unsigned char temp = values[i];
-                values[i] = values[i-1];
-                values[i-1] = temp;
-                sorted = 0;
-            }
-        }
+//encoding
+#define WRITE_CONTROL		0b1
+#define WRITE_IMAGE		 	0b010
+#define READ_STATUS 		0b011
+#define READ_CONTROL		0b100
+#define READ_IMAGE_OUT		0b101
+
+//Register positions
+#define RESET				0
+#define DIST_ACK			1
+#define FIFO_READ_DATA_ACK	6
+#define ENABLE				7
+
+#define READY_FOR_CHUNK		1
+#define FIFO_DATA_READY 	7
+        //vga_char_virtual_base = mmap( NULL, FPGA_CHAR_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, FPGA_CHAR_BASE );
+
+
+int MapHWAddress()
+{
+	// === get FPGA addresses ==================
+    if( ( fd = open( "/dev/mem", ( O_RDWR | O_SYNC ) ) ) == -1 ) 	{
+        printf( "ERROR: could not open \"/dev/mem\"...\n" );
+        return( 1 );
     }
-    return values[4];
+	
+	
+	// HW map
+	//hw_virtual_base = mmap( NULL, FILTER_0_HW_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, FPGA_AXI_BASE);
+	
+	hw_virtual_base = mmap( NULL, HW_FPGA_AXI_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, FPGA_AXI_BASE);
+	if(hw_virtual_base == MAP_FAILED ) {
+        printf( "ERROR: mmap3() failed...\n" );
+        close( fd );
+        return(1);
+    }
+	
+	data_hw = hw_virtual_base + ((unsigned long)(0x0 + FILTER_0_HW_BASE) & ( unsigned long)( HW_FPGA_AXI_MASK ) );
+
+	return 0;	
 }
 
-int convolutionFilter(unsigned char values[9]) {
-    #if 0 // Edge detection
-    const int kernel[9] = { 0,  1,  0,
-                            1, -4,  1,
-                            0,  1,  0 };
-    const int div = 1;
-    #elif 1 // Gaussian
-    const int kernel[9] = { 1,  2,  1,
-                            2,  4,  2,
-                            1,  2,  1 };
-    const int div = 16;
-    #else // Identity
-    const int kernel[9] = { 0,  0,  0,
-                            0,  1,  0,
-                            0,  0,  0 };
-    const int div = 1;
-    #endif
-
-    int sum = 0;
-    for (int i=0; i<9; ++i) {
-        sum += kernel[i]*(int)values[i];
+int MapLWAddress()
+{
+	// === get FPGA addresses ==================
+    if( ( fd = open( "/dev/mem", ( O_RDWR | O_SYNC ) ) ) == -1 ) 	{
+        printf( "ERROR: could not open \"/dev/mem\"...\n" );
+        return( 1 );
     }
-    return (int)(sum / div);
+
+	// Light Weight
+	lw_virtual_base = mmap( NULL, HW_REGS_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, HW_REGS_BASE);
+	if(lw_virtual_base == MAP_FAILED ) {
+        printf( "ERROR: mmap3() failed...\n" );
+        close( fd );
+        return(1);
+    }
+	
+	
+	encoding_lw = lw_virtual_base + (( unsigned long  )( ALT_LWFPGASLVS_OFST + FILTER_0_LW_BASE ) & ( unsigned long)( HW_REGS_MASK ));
+	
+	return 0;
+	
 }
 
-int sobelFilter(unsigned char values[9]) {
-    const int sobel_x[9] = { 1,  0, -1,
-                             2,  0, -2,
-                             1,  0, -1 };
-    const int sobel_y[9] = { 1,  2,  1,
-                             0,  0,  0,
-                            -1, -2, -1 };
-
-    int sumx = 0;
-    int sumy = 0;
-    for (int i=0; i<9; ++i) {
-        sumx += sobel_x[i]*values[i];
-        sumy += sobel_y[i]*values[i];
+int UnMapHWAddress()
+{
+	
+	if( munmap( hw_virtual_base, HW_FPGA_AXI_SPAN ) != 0 ) {
+        printf( "ERROR: HW munmap() failed...\n" );
+        close( fd );
+        return( 1 );
     }
-    return (int)sqrt(sumx*sumx + sumy*sumy);
+
+	close(fd);
+	return 0;
 }
 
-#define WINDOW_FUNC sobelFilter
+int UnMapLWAddress()
+{
+ 	
+	if( munmap( lw_virtual_base, HW_REGS_SPAN ) != 0 ) {
+        printf( "ERROR: LW munmap() failed...\n" );
+        close( fd );
+        return( 1 );
+    }
+	close(fd);
+	return 0;
+	
+}
+
+uint64_t ReadFromControlRegister()
+{
+	MapLWAddress();
+	*(uint32_t *)encoding_lw = READ_CONTROL;
+	UnMapLWAddress();
+	
+	usleep(1);
+	
+	MapHWAddress();
+	uint64_t readData = *(uint64_t*)data_hw;
+	UnMapHWAddress();
+	return readData;
+}
+
+uint64_t ReadFromStatusRegister()
+{
+	MapLWAddress();
+	*(uint32_t *)encoding_lw = READ_STATUS;
+	UnMapLWAddress();
+	
+	usleep(1);
+	
+	MapHWAddress();
+	uint64_t readData = *(uint64_t*)data_hw;
+	UnMapHWAddress();
+	return readData;
+}
+
+uint64_t ReadFromImageOutRegister()
+{
+	MapLWAddress();
+	*(uint32_t *)encoding_lw = READ_IMAGE_OUT;
+	UnMapLWAddress();
+	
+	usleep(1);
+	
+	MapHWAddress();
+	uint64_t readData = *(uint64_t*)data_hw;
+	UnMapHWAddress();
+	return readData;
+}
+
+void WriteToControlRegister(u64 data)
+{
+	MapHWAddress();
+	*(uint64_t *)data_hw 	= data;
+	UnMapHWAddress();
+	
+	usleep(1);
+	
+	MapLWAddress();
+	*(uint32_t *)encoding_lw = WRITE_CONTROL;
+	UnMapLWAddress();
+}
+
+void WriteToImageInRegister(u64 data)
+{
+	MapHWAddress();
+	*(uint64_t *)data_hw = data;
+	UnMapHWAddress();
+	
+	usleep(1);
+	
+	MapLWAddress();
+	*(uint32_t *)encoding_lw = WRITE_IMAGE;
+	UnMapLWAddress();
+}
+
+void ResetHardware()
+{
+	u64 controlReg = ReadFromControlRegister();
+	
+	printf("Control before reset %#" PRIx64 "\n", controlReg);
+	printf("print normal %d \n", controlReg);
+
+	controlReg |= (1UL << RESET);
+	WriteToControlRegister(controlReg);
+	
+	printf("Control after reset %#" PRIx64 "\n", controlReg);
+
+	
+	controlReg &= ~(1UL << RESET);
+	
+	printf("Control before writing  %#" PRIx64 "\n", controlReg);
+	WriteToControlRegister(controlReg);
+}
+
+
 int windowFilter(struct bmp_out_struct *bmp_out) {
     // Take a few local copies to make the code a bit easier to read
     unsigned char *bmp_buffer = bmp_out->bmp_buffer;
     // Filter
     unsigned char *bmp_processed = (unsigned char*) malloc(bmp_out->bmp_size);
+	
+	uint64_t statusRegister;
+	uint64_t controlRegister;
+	
+	u8 buffer_p1 = NULL;
+	u8 buffer_p2 = NULL;
+	u8 buffer_p3 = NULL;
+	u8 buffer_p4 = NULL;
+	u8 buffer_p5 = NULL;
+	u8 buffer_p6 = NULL;
+	u8 buffer_p7 = NULL;
+	u8 buffer_p8 = NULL;
+	
+	u64 combined_image_chunk = 0;
+	u64 register_buffer = 0;
+	u64 imageChunk = 0;
+	
+	u8 eightBitChunk = 0; 
+	
+	int outputPixelChunkCount = 0;
+	u8 wholeImageDistributed = 0;
+	
+	int row_out = 0;
+	int col_out = 0;
+	
+
+	while(outputPixelChunkCount != TARGET_PIXEL_COUNT)
+	{
+		if(wholeImageDistributed == 0)
+		{
+			for (int row = 0; row < (bmp_out->height); ++row)
+			{
+				for(int col = 0; col < (bmp_out->width); col += 8)  //verify this loop condition
+				{
+					#define val(row, col) bmp_buffer[(row)*bmp_out->row_stride + (col)*bmp_out->pixel_size] 
+					buffer_p1 = val(row, col);
+					buffer_p2 = val(row, col + 1);
+					buffer_p3 = val(row, col + 2);
+					buffer_p4 = val(row, col + 3);
+					buffer_p5 = val(row, col + 4);
+					buffer_p6 = val(row, col + 5);
+					buffer_p7 = val(row, col + 6);
+					buffer_p8 = val(row, col + 7);
+					#undef val
+					
+					combined_image_chunk = (u64)buffer_p1 << 56 | (u64)buffer_p2 << 48 | (u64)buffer_p3 << 40 | (u64)buffer_p4 << 32 | (u64)buffer_p5 << 24 | (u64)buffer_p6 << 16 | (u64)buffer_p7 << 8 | (u64)buffer_p8;
+					
+					printf("VALUE imageChunk is %#" PRIx64 "\n", combined_image_chunk);
+				
+					//pass in a chunk
+					WriteToImageInRegister(combined_image_chunk);
+					
+					//send enable signal
+					register_buffer = ReadFromControlRegister();
+					
+					printf("before masking is %#" PRIx64 "\n", register_buffer);
+					register_buffer |= (1 << ENABLE);
+					printf("after masking is %#" PRIx64 "\n", register_buffer);
+
+					WriteToControlRegister(register_buffer);
+
+					//Grab status register content
+					statusRegister = ReadFromStatusRegister();
+					
+					//if there's data from the fifo to grab
+					if(((statusRegister >> FIFO_DATA_READY) & 1) == 1)
+					{
+						//grab a chunk
+						imageChunk = ReadFromImageOutRegister();
+						printf("VALUE imageChunk is %#" PRIx64 "\n", imageChunk);
+
+						for(int pixel = 0; pixel < 8; pixel++)
+						{
+							if (pixel == 0)
+							{
+								eightBitChunk = imageChunk & 0xFF;
+							} 
+							else 
+							{
+								eightBitChunk = (imageChunk >> (pixel * 8));
+							}
+							bmp_processed[(row_out*bmp_out->row_stride) + (col_out)*bmp_out->pixel_size + 0] = eightBitChunk;
+							bmp_processed[(row_out*bmp_out->row_stride) + (col_out)*bmp_out->pixel_size + 1] = eightBitChunk;
+							bmp_processed[(row_out*bmp_out->row_stride) + (col_out)*bmp_out->pixel_size + 2] = eightBitChunk;
+							
+							
+							col_out++;
+							
+							if (col_out == IMAGE_WIDTH) {
+								col_out = 0;
+								row_out++;
+							}
+								
+							if (row_out == IMAGE_HEIGHT) break;	
+							
+							
+						}	
+						outputPixelChunkCount++;
+					}
+					
+					statusRegister = ReadFromStatusRegister();
+					
+					//check for 'ready for a (new) chunk' signal
+				 	while(((statusRegister >> READY_FOR_CHUNK) & 1) == 0)
+					{
+						statusRegister = ReadFromStatusRegister();
+						printf("StatusRegister content is %#" PRIx64 "\n", statusRegister);
+					}	 
+					
+					controlRegister = ReadFromControlRegister();
+					register_buffer = (controlRegister) & ~(1 << ENABLE); //set enable to low
+					register_buffer = (register_buffer) | (1 << DIST_ACK);
+					WriteToControlRegister(register_buffer); //write back
+						
+					//reading from control reg, then write to it 
+						
+					controlRegister = ReadFromControlRegister();
+					register_buffer = (controlRegister) & ~(1 << DIST_ACK);
+					WriteToControlRegister(register_buffer);
+				}
+			}
+			wholeImageDistributed = 1;
+		}
+		else
+		{
+			printf("FINISHED INPUTTING IMAGE\n");
+			
+			if(((statusRegister >> FIFO_DATA_READY) & 1) == 1)
+			{
+				//grab a chunk
+				imageChunk = ReadFromImageOutRegister();					
+				for(int pixel = 0; pixel < 8; pixel++)
+				{
+					if (pixel == 0)
+					{
+						eightBitChunk = imageChunk & 0xFF;
+					} 
+					else 
+					{
+						eightBitChunk = (imageChunk >> (pixel * 8));
+					}
+					
+					bmp_processed[(row_out*bmp_out->row_stride) + (col_out)*bmp_out->pixel_size + 0] = eightBitChunk;
+					bmp_processed[(row_out*bmp_out->row_stride) + (col_out)*bmp_out->pixel_size + 1] = eightBitChunk;
+					bmp_processed[(row_out*bmp_out->row_stride) + (col_out)*bmp_out->pixel_size + 2] = eightBitChunk;	
+					
+					col_out++;
+							
+					if (col_out == IMAGE_WIDTH) {
+							col_out = 0;
+							row_out++;
+					}
+					
+					if (row_out == IMAGE_HEIGHT) break;
+					
+					
+				}
+				outputPixelChunkCount++;
+			}
+		}
+	}
+	
+	printf("FRAME DONE!\n");
+	ResetHardware();
+
+    // Replace input with output
+    memcpy(bmp_buffer, bmp_processed, bmp_out->bmp_size);
+    return 1;
+}
+
+int cvt2Gray(struct bmp_out_struct *bmp_out) {
+    // Take a few local copies to make the code a bit easier to read
+    unsigned char *bmp_buffer = bmp_out->bmp_buffer;
+    // Filter
+    unsigned char *bmp_processed = (unsigned char*) malloc(bmp_out->bmp_size);
     // Iterate over full image
-    for (int row=0; row<bmp_out->height; ++row) {
+    //unsigned char middle = 0;
+	
+	unsigned char grayscale = 0;
+	int chan = 0;
+	
+	double RED = 0;
+	double GREEN = 0;
+	double  BLUE = 0;
+	
+	#define RED_CONST 0.2989
+	#define GREEN_CONST 0.5870
+	#define BLUE_CONST 0.1140
+	
+	for (int row=0; row<bmp_out->height; ++row) {
         for (int col=0; col<bmp_out->width; ++col) {
             // Work on each channel independently
-            for (int chan=0; chan<bmp_out->pixel_size; ++chan) {
-                // Black border
-                unsigned char middle = 0;
-                if ((row>0 && row<bmp_out->height-1) && (col>0 && col<bmp_out->width-1)) {
-                    #define val(row, col) bmp_buffer[(row)*bmp_out->row_stride + (col)*bmp_out->pixel_size + chan]
-                    // Load all adjacent values
-                    unsigned char values[9] = {
-                        val(row-1, col-1), val(row-1, col), val(row-1, col+1),
-                        val(row-0, col-1), val(row-0, col), val(row-0, col+1),
-                        val(row+1, col-1), val(row+1, col), val(row+1, col+1),
-                    };
-                    #undef val
-                    middle = WINDOW_FUNC(values);
-                }
-                // Set output
-                bmp_processed[(row*bmp_out->row_stride) + col*bmp_out->pixel_size + chan] = middle;
+			for (chan=0; chan<bmp_out->pixel_size; ++chan) {
+               
+                #define val(row, col) bmp_buffer[(row)*bmp_out->row_stride + (col)*bmp_out->pixel_size + chan]
+                    
+				switch (chan) {
+					case 0: // Red
+						RED = (double) val(row,col);
+					break;
+
+					case 1: // Green
+						GREEN = (double) val(row,col);
+					break;
+						
+					case 2: // Blue
+						BLUE  = (double) val(row,col);
+					break;
+						
+					default:
+						break;						
+				}
+
+				#undef val
+						
+                
             }
+			
+			// Calculate gray scale
+			grayscale = (RED * RED_CONST) + (GREEN * GREEN_CONST) + (BLUE * BLUE_CONST);
+			
+			// Set output
+			bmp_processed[(row*bmp_out->row_stride) + col*bmp_out->pixel_size + 0] = grayscale;
+			bmp_processed[(row*bmp_out->row_stride) + col*bmp_out->pixel_size + 1] = grayscale;
+			bmp_processed[(row*bmp_out->row_stride) + col*bmp_out->pixel_size + 2] = grayscale;
+			
+			RED = 0;
+			GREEN = 0;
+			BLUE = 0;
+			
+			grayscale = 0;
+			chan = 0;			
         }
     }
 
@@ -201,7 +556,7 @@ int windowFilter(struct bmp_out_struct *bmp_out) {
 int main (int argc, char *argv[]) {
 		
 	int rc, i;
-    int fd;
+    
 
 	char *syslog_prefix = (char*) malloc(1024);
 	sprintf(syslog_prefix, "%s", argv[0]);
@@ -251,15 +606,6 @@ int main (int argc, char *argv[]) {
             return(1);
         }
 		
-		virtual_base = mmap( NULL, HW_REGS_SPAN, ( PROT_READ | PROT_WRITE ), MAP_SHARED, fd, HW_REGS_BASE);
-		if(virtual_base == MAP_FAILED ) {
-            printf( "ERROR: mmap3() failed...\n" );
-            close( fd );
-            return(1);
-        }
-		
-		
-		
         // Get the address that maps to the FPGA pixel buffer
         vga_pixel_ptr =(unsigned int *)(vga_pixel_virtual_base);
 
@@ -270,25 +616,29 @@ int main (int argc, char *argv[]) {
         VGA_text_clear();
     #endif
 	
-	uint64_t* testing = virtual_base + ((unsigned long) (0x0a000000) & (unsigned long) (HW_REGS_MASK));
-	 	
-	*(uint64_t *)testing = 12345;
-	//sleep(5);
 	
-	uint64_t readData = *(uint64_t*)testing;
-            
+	//ResetHardware();	
+
+	
+	//WriteToControlRegister(0b 11111111 00000000 11111111 00000000 11111111 00001000 11111111 00000000);
+ 	/* WriteToControlRegister(0x32311);
+	u64 read_c = ReadFromControlRegister();
+	printf("VALUE (HEAVY) is %#" PRIx64 "\n", read_c);
+	
+	ResetHardware();	
+
+	WriteToControlRegister(0x3231a);
+	read_c = ReadFromControlRegister();
+	printf("CONTROL (HEAVY) is %#" PRIx64 "\n", read_c); 
+	 */
+	
+	ResetHardware();
 	
 	
-	printf("TEEESSSSTTT -------------------\n");
-	printf("VALUE is %#" PRIx64 "\n", readData);
 	
-	*(uint64_t *)testing = 0xFFFF;
-	//sleep(5);
 	
-	uint64_t readData2 = *(uint64_t*)testing;
-		
-	printf("TEEESSSSTTT -------------------\n");
-	printf("VALUE is %#" PRIx64 "\n", readData2);
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	
 
@@ -395,10 +745,15 @@ int decodeMjpeg(unsigned char *mjpeg_buffer, unsigned long mjpeg_size) {
 
         // Decode
         IM_DECODE(&cinfo, &bmp_out);
+		
+		        
+		#ifdef CVT2GRYSCALE
+            CVT2GRYSCALE(&bmp_out);
+        #endif
 
         // Process
         #ifdef IM_PROCESS
-            IM_PROCESS(&bmp_out);
+           IM_PROCESS(&bmp_out);
         #endif
 
         // Output
@@ -619,3 +974,5 @@ int outputVGA(struct bmp_out_struct *bmp_out) {
             }
     }
 #endif
+
+

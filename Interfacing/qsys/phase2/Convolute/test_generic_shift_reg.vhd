@@ -1,0 +1,61 @@
+library ieee;
+use ieee.numeric_std.all;
+use ieee.std_logic_1164.all;
+
+entity test_generic_shift_reg is
+end entity test_generic_shift_reg;
+
+architecture beh of test_generic_shift_reg is
+	component generic_shift_reg is
+		generic(
+			image_width : integer range 5 to 640 := 5;
+			kernel_width : integer range 3 to 5 := 3
+		);
+		
+		port(
+			clk, reset, enable : in std_logic;
+			pixel_in : in std_logic_vector(7 downto 0);
+			pixel_out : out std_logic_vector(7 downto 0)
+		);
+	end component;
+
+	signal t_clk : std_logic := '0';
+	signal t_reset : std_logic := '0';
+	signal t_enable : std_logic := '0';
+	signal t_pixel_in : std_logic_vector(7 downto 0);
+	signal t_pixel_out : std_logic_vector(7 downto 0);
+
+begin
+
+	DUT : generic_shift_reg port map (
+		clk => t_clk,
+		reset => t_reset,
+		enable => t_enable,
+		pixel_in => t_pixel_in,
+		pixel_out => t_pixel_out
+		);
+		
+	init : process
+	begin
+		t_enable <= '0', '1' after 2 ns;
+		t_pixel_in <= x"00", 
+		x"01" after 2 ns, 
+		x"02" after 6 ns, 
+		x"03" after 10 ns,
+		x"04" after 14 ns,
+		x"05" after 18 ns,
+		x"06" after 22 ns;
+		
+		wait;
+		
+	end process;
+	
+	clk_gen : process
+	begin
+		wait for 2 ns;
+		t_clk <= '0';
+		wait for 2 ns;
+		t_clk <= '1';
+	end process;
+	
+end architecture beh;

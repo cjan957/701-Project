@@ -1,0 +1,148 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+
+entity conv_sys is 
+port (
+
+	clk,enable,reset: in std_logic;
+	
+	--sel_output : in std_logic;
+	
+	pixel_in : in std_logic_vector(7 downto 0);
+	
+	shift_en : in std_logic;
+				
+	image_width : in std_logic_vector(10 downto 0);
+	image_height: in std_logic_vector(9 downto 0);
+		
+	kern_sel : in std_logic_vector(2 downto 0);
+	
+	pixel_out : out std_logic_vector(7 downto 0);
+	
+	data_ready : out std_logic
+);
+end entity conv_sys;
+
+architecture beh_conv of conv_sys is
+
+
+component Buffer_Module is
+port (
+
+	clk, reset, enable : in std_logic;
+	shift_enable : in std_logic;
+	data_in : in std_logic_vector(7 downto 0);
+	
+	px1, px2, px3, px4, px5, px6, px7, px8, px9, data_out : out std_logic_vector(7 downto 0)
+	
+);
+end component Buffer_Module;
+
+
+component Convolution is 
+port (
+
+	clk, enable : in std_logic;
+	kernel : in std_logic_vector(2 downto 0);
+	input1,input2,input3,input4,input5,input6,input7,input8,input9 : in std_logic_vector(7 downto 0);
+	conv_result : out std_logic_vector(7 downto 0);
+	conv_done : out std_logic	
+);
+end component Convolution;
+
+
+component pixel_counter is
+generic (
+
+	image_width : integer range 5 to 640 := 5;
+	image_height : integer range 5 to 480 := 5
+
+);
+port (
+
+	clk, cnt_en, reset : in std_logic;
+	first_pixels : out std_logic;
+	conv_ready : out std_logic
+
+);
+end component pixel_counter;
+
+
+
+-- Pixel Signals
+signal p1, p2, p3, p4, p5, p6, p7, p8, p9, data_out_temp, pixel_out_temp : std_logic_vector(7 downto 0) := (others => '0');
+
+signal conv_enable, data_ready_s, data_high : std_logic := '0';
+
+signal start_conv, first_pixels_sig : std_logic := '0';
+
+begin
+
+-- TODO: Must change this (?)
+start_conv <= '1' when conv_enable ='1';
+
+
+buff : Buffer_Module port map (
+
+	clk => clk,
+	enable => enable,
+	shift_enable => shift_en,
+	reset => reset,
+	data_in => pixel_in,
+	
+	px1 => p1,
+	px2 => p2,
+	px3 => p3,
+	px4 => p4,
+	px5 => p5,
+	px6 => p6,
+	px7 => p7,
+	px8 => p8,
+	px9 => p9,
+	
+	data_out => data_out_temp
+
+);
+
+conv : Convolution port map (
+
+	clk => clk,
+	enable => conv_enable,	
+	kernel => kern_sel,	
+	input1 => p1,
+	input2 => p2,
+	input3 => p3,
+	input4 => p4,
+	input5 => p5,
+	input6 => p6,
+	input7 => p7,
+	input8 => p8,
+	input9 => p9,
+	
+	conv_result => pixel_out_temp,
+	
+	conv_done => data_ready_s
+
+);
+
+px_count : pixel_counter port map (
+
+
+	clk => clk,
+	cnt_en => shift_en, 
+	reset => reset,
+	first_pixels => first_pixels_sig,
+	conv_ready => conv_enable
+
+);
+
+data_high <= '1' when data_ready_s = '1';
+
+data_ready <= '1' when data_high = '1' OR first_pixels_sig = '1' else '0';
+pixel_out <= pixel_out_temp  when data_ready_s = '1' else (others => '0');
+
+
+
+end architecture beh_conv;

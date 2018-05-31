@@ -1,0 +1,20 @@
+Fitter Status : Successful - Sat May 26 15:10:23 2018
+Quartus Prime Version : 16.1.0 Build 196 10/24/2016 SJ Lite Edition
+Revision Name : Convolution
+Top-level Entity Name : Filtering
+Family : Cyclone V
+Device : 5CSEMA5F31C6
+Timing Models : Final
+Logic utilization (in ALMs) : 303 / 32,070 ( < 1 % )
+Total registers : 490
+Total pins : 135 / 457 ( 30 % )
+Total virtual pins : 0
+Total block memory bits : 262,144 / 4,065,280 ( 6 % )
+Total RAM Blocks : 32 / 397 ( 8 % )
+Total DSP Blocks : 1 / 87 ( 1 % )
+Total HSSI RX PCSs : 0
+Total HSSI PMA RX Deserializers : 0
+Total HSSI TX PCSs : 0
+Total HSSI PMA TX Serializers : 0
+Total PLLs : 0 / 6 ( 0 % )
+Total DLLs : 0 / 4 ( 0 % )

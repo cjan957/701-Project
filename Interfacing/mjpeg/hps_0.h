@@ -167,7 +167,7 @@
 #define SYSID_SPAN 8
 #define SYSID_END 0x2047
 #define SYSID_ID 0
-#define SYSID_TIMESTAMP 1527399426
+#define SYSID_TIMESTAMP 1527726211
 
 /*
  * Macros for device 'AV_Config', class 'altera_up_avalon_audio_and_video_config'
@@ -215,6 +215,17 @@
 #define AUDIO_SUBSYSTEM_AUDIO_IRQ 6
 
 /*
+ * Macros for device 'Filter_0_lw', class 'Filter'
+ * The macros are prefixed with 'FILTER_0_LW_'.
+ * The prefix is the slave descriptor.
+ */
+#define FILTER_0_LW_COMPONENT_TYPE Filter
+#define FILTER_0_LW_COMPONENT_NAME Filter_0
+#define FILTER_0_LW_BASE 0x10000
+#define FILTER_0_LW_SPAN 4
+#define FILTER_0_LW_END 0x10003
+
+/*
  * Macros for device 'Onchip_SRAM', class 'altera_avalon_onchip_memory2'
  * The macros are prefixed with 'ONCHIP_SRAM_'.
  * The prefix is the slave descriptor.
@@ -259,15 +270,15 @@
 #define VGA_SUBSYSTEM_VGA_CHAR_BUFFER_AVALON_CHAR_BUFFER_SLAVE_END 0x9001fff
 
 /*
- * Macros for device 'new_component_0', class 'new_component'
- * The macros are prefixed with 'NEW_COMPONENT_0_'.
+ * Macros for device 'Filter_0_hw', class 'Filter'
+ * The macros are prefixed with 'FILTER_0_HW_'.
  * The prefix is the slave descriptor.
  */
-#define NEW_COMPONENT_0_COMPONENT_TYPE new_component
-#define NEW_COMPONENT_0_COMPONENT_NAME new_component_0
-#define NEW_COMPONENT_0_BASE 0xa000000
-#define NEW_COMPONENT_0_SPAN 8
-#define NEW_COMPONENT_0_END 0xa000007
+#define FILTER_0_HW_COMPONENT_TYPE Filter
+#define FILTER_0_HW_COMPONENT_NAME Filter_0
+#define FILTER_0_HW_BASE 0xa000000
+#define FILTER_0_HW_SPAN 8
+#define FILTER_0_HW_END 0xa000007
 
 
 #endif /* _ALTERA_HPS_0_H_ */

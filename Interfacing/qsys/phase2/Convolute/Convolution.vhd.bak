@@ -1,0 +1,128 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity Convolution is 
+port (
+
+	clk,enable : in std_logic;
+	kernel : in std_logic_vector(2 downto 0);
+	input1,input2,input3,input4,input5,input6,input7,input8,input9 : in unsigned(7 downto 0);
+	conv_result : out unsigned(15 downto 0)	
+);
+end entity Convolution;
+
+architecture beh of Convolution is
+
+type kernel_type is array (8 downto 0) of integer range -4 to 5;
+
+signal gaussian_blur : kernel_type := (1,2,1,2,4,2,1,2,1);
+
+signal sobel_x : kernel_type := (-1,0,1,-2,0,2,-1,0,1);
+
+signal sobel_y : kernel_type := (-1,-2,-1,0,0,0,1,2,1);
+
+signal scharring : kernel_type := (0,-1,0,-1,5,-1,0,-1,0);
+
+signal temp_result : integer range -32768 to 32767 := 0;
+
+begin
+	
+	
+	
+	process(clk) 
+	begin
+		if (rising_edge(clk)) then
+			if (enable = '1') then
+		
+				case kernel is 
+				
+					-- Gaussian blur
+					when "001" =>
+					
+					temp_result <= 
+					
+					( 
+					(gaussian_blur(0) * to_integer(input1)) + 
+					(gaussian_blur(1) * to_integer(input2)) + 
+					(gaussian_blur(2) * to_integer(input3)) + 
+					(gaussian_blur(3) * to_integer(input4)) + 
+					(gaussian_blur(4) * to_integer(input5)) + 
+					(gaussian_blur(5) * to_integer(input6)) + 
+					(gaussian_blur(6) * to_integer(input7)) + 
+					(gaussian_blur(7) * to_integer(input8)) + 
+					(gaussian_blur(8) * to_integer(input9))
+					) / 16; 
+								
+					-- Sobel X
+					when "010" =>	
+			
+					temp_result <= 
+					
+					((sobel_x(0) * to_integer(input1)) + 
+					(sobel_x(1) *  to_integer(input2)) +
+					(sobel_x(2) *  to_integer(input3)) + 
+					(sobel_x(3) *  to_integer(input4)) + 
+					(sobel_x(4) *  to_integer(input5)) + 
+					(sobel_x(5) *  to_integer(input6)) + 
+					(sobel_x(6) *  to_integer(input7)) + 
+					(sobel_x(7) *  to_integer(input8)) +
+					(sobel_x(8) *  to_integer(input9))
+
+					); 
+					
+					-- Sobel Y
+					when "011" =>
+					
+					temp_result <= 
+					
+					
+					((sobel_y(0) * to_integer(input1)) + 
+					(sobel_y(1) *  to_integer(input2)) +
+					(sobel_y(2) *  to_integer(input3)) + 
+					(sobel_y(3) *  to_integer(input4)) + 
+					(sobel_y(4) *  to_integer(input5)) + 
+					(sobel_y(5) *  to_integer(input6)) + 
+					(sobel_y(6) *  to_integer(input7)) + 
+					(sobel_y(7) *  to_integer(input8)) +
+					(sobel_y(8) *  to_integer(input9)
+					)
+
+					);
+				
+					-- Scharring
+					when "100" => 
+					
+					temp_result <= 
+					
+					
+					((scharring(0) * to_integer(input1)) + 
+					(scharring(1) *  to_integer(input2)) +
+					(scharring(2) *  to_integer(input3)) + 
+					(scharring(3) *  to_integer(input4)) + 
+					(scharring(4) *  to_integer(input5)) + 
+					(scharring(5) *  to_integer(input6)) + 
+					(scharring(6) *  to_integer(input7)) + 
+					(scharring(7) *  to_integer(input8)) +
+					(scharring(8) *  to_integer(input9)
+					)
+
+					);
+													
+					
+					when others => temp_result <= 0;
+				
+				end case;				
+			end if;
+		end if;
+	
+	end process;
+
+
+-- Caps the results to be 0 or 255	
+conv_result <= "0000000011111111" when temp_result > 255 
+					else (others=> '0') when temp_result < 0 
+					else to_unsigned(temp_result, 16);
+
+end architecture;
+

@@ -1,0 +1,29 @@
+library ieee;
+use ieee.numeric_std.all;
+use ieee.std_logic_1164.all;
+
+entity Conv_sys_FSM is
+port (
+
+	clk,enable,reset 			: in std_logic;
+	first_pixels 				: in std_logic;
+	conv_ready 					: in std_logic;
+	last_pixels 				: in std_logic;
+	
+	cnt_enable 					: out std_logic
+	
+	
+
+
+);
+end entity Conv_sys_FSM;
+
+
+architecture logic of Conv_sys_FSM is
+
+
+begin
+
+
+
+end architecture logic;

@@ -67,7 +67,7 @@ div.greydiv { vertical-align:top ; text-align:center ; background:#eeeeee ; bord
   </table>
   <table class="blueBar">
    <tr>
-    <td class="l">2018.05.27.17:37:07</td>
+    <td class="l">2018.05.31.16:18:08</td>
     <td class="r">Datasheet</td>
    </tr>
   </table>
@@ -112,6 +112,9 @@ div.greydiv { vertical-align:top ; text-align:center ; background:#eeeeee ; bord
      <a href="#module_F2H_Mem_Window_FF800000"><b>F2H_Mem_Window_FF800000</b>
      </a> altera_address_span_extender 16.1
      <br/>&#160;&#160;
+     <a href="#module_Filter_0"><b>Filter_0</b>
+     </a> Filter 1.4
+     <br/>&#160;&#160;
      <a href="#module_HEX3_HEX0"><b>HEX3_HEX0</b>
      </a> altera_avalon_pio 16.1
      <br/>&#160;&#160;
@@ -143,10 +146,7 @@ div.greydiv { vertical-align:top ; text-align:center ; background:#eeeeee ; bord
      </a> altera_up_avalon_video_character_buffer_with_dma 16.1
      <br/>&#160;&#160;
      <a href="#module_VGA_Subsystem_VGA_Pixel_DMA"><b>VGA_Subsystem_VGA_Pixel_DMA</b>
-     </a> altera_up_avalon_video_pixel_buffer_dma 16.1
-     <br/>&#160;&#160;
-     <a href="#module_new_component_0"><b>new_component_0</b>
-     </a> new_component 1.0</span>
+     </a> altera_up_avalon_video_pixel_buffer_dma 16.1</span>
    </div>
   </div>
   <div style="width:100% ;  height:10px"> </div>
@@ -1219,6 +1219,39 @@ div.greydiv { vertical-align:top ; text-align:center ; background:#eeeeee ; bord
    </tr>
    <tr>
     <td class="slavemodule">&#160;
+     <a href="#module_Filter_0"><b>Filter_0</b>
+     </a>
+    </td>
+    <td class="empty"></td>
+    <td class="empty"></td>
+    <td class="empty"></td>
+    <td class="empty"></td>
+    <td class="empty"></td>
+    <td class="empty"></td>
+    <td class="empty"></td>
+   </tr>
+   <tr>
+    <td class="slavem">hw&#160;</td>
+    <td class="addr"><span style="color:#989898">0x</span>0a000000</td>
+    <td class="empty"></td>
+    <td class="addr"><span style="color:#989898">0x</span>ca000000</td>
+    <td class="addr"><span style="color:#989898">0x</span>ca000000</td>
+    <td class="empty"></td>
+    <td class="empty"></td>
+    <td class="empty"></td>
+   </tr>
+   <tr>
+    <td class="slavem">lw&#160;</td>
+    <td class="empty"></td>
+    <td class="addr"><span style="color:#989898">0x</span>00010000</td>
+    <td class="addr"><span style="color:#989898">0x</span>ff210000</td>
+    <td class="addr"><span style="color:#989898">0x</span>ff210000</td>
+    <td class="empty"></td>
+    <td class="empty"></td>
+    <td class="empty"></td>
+   </tr>
+   <tr>
+    <td class="slavemodule">&#160;
      <a href="#module_HEX3_HEX0"><b>HEX3_HEX0</b>
      </a>
     </td>
@@ -1507,29 +1540,6 @@ div.greydiv { vertical-align:top ; text-align:center ; background:#eeeeee ; bord
     <td class="empty"></td>
     <td class="empty"></td>
     <td class="addr"><span style="color:#989898">0x</span>00000000</td>
-    <td class="empty"></td>
-    <td class="empty"></td>
-   </tr>
-   <tr>
-    <td class="slavemodule">&#160;
-     <a href="#module_new_component_0"><b>new_component_0</b>
-     </a>
-    </td>
-    <td class="empty"></td>
-    <td class="empty"></td>
-    <td class="empty"></td>
-    <td class="empty"></td>
-    <td class="empty"></td>
-    <td class="empty"></td>
-    <td class="empty"></td>
-   </tr>
-   <tr>
-    <td class="slaveb">avalon_slave_0&#160;</td>
-    <td class="addr"><span style="color:#989898">0x</span>0a000000</td>
-    <td class="empty"></td>
-    <td class="addr"><span style="color:#989898">0x</span>ca000000</td>
-    <td class="addr"><span style="color:#989898">0x</span>ca000000</td>
-    <td class="empty"></td>
     <td class="empty"></td>
     <td class="empty"></td>
    </tr>
@@ -20610,7 +20620,7 @@ div.greydiv { vertical-align:top ; text-align:center ; background:#eeeeee ; bord
        <a href="#module_ARM_A9_HPS_clk_0">ARM_A9_HPS_clk_0</a>
       </td>
       <td class="from">clk_reset&#160;&#160;</td>
-      <td class="main" rowspan="216">ARM_A9_HPS_bridges</td>
+      <td class="main" rowspan="220">ARM_A9_HPS_bridges</td>
      </tr>
      <tr>
       <td class="to">&#160;&#160;reset_sink</td>
@@ -21337,22 +21347,6 @@ div.greydiv { vertical-align:top ; text-align:center ; background:#eeeeee ; bord
       <td></td>
       <td></td>
       <td class="from">h2f&#160;&#160;</td>
-      <td class="neighbor" rowspan="2">
-       <a href="#module_new_component_0">new_component_0</a>
-      </td>
-     </tr>
-     <tr>
-      <td></td>
-      <td></td>
-      <td class="to">&#160;&#160;avalon_slave_0</td>
-     </tr>
-     <tr style="height:6px">
-      <td></td>
-     </tr>
-     <tr>
-      <td></td>
-      <td></td>
-      <td class="from">h2f&#160;&#160;</td>
       <td class="neighbor" rowspan="4">
        <a href="#module_VGA_Subsystem_VGA_Char_Buffer">VGA_Subsystem_VGA_Char_Buffer</a>
       </td>
@@ -21371,6 +21365,42 @@ div.greydiv { vertical-align:top ; text-align:center ; background:#eeeeee ; bord
       <td></td>
       <td></td>
       <td class="to">&#160;&#160;avalon_char_control_slave</td>
+     </tr>
+     <tr style="height:6px">
+      <td></td>
+     </tr>
+     <tr>
+      <td></td>
+      <td></td>
+      <td class="from">h2f&#160;&#160;</td>
+      <td class="neighbor" rowspan="6">
+       <a href="#module_Filter_0">Filter_0</a>
+      </td>
+     </tr>
+     <tr>
+      <td></td>
+      <td></td>
+      <td class="to">&#160;&#160;hw</td>
+     </tr>
+     <tr>
+      <td></td>
+      <td></td>
+      <td class="from">h2f_lw&#160;&#160;</td>
+     </tr>
+     <tr>
+      <td></td>
+      <td></td>
+      <td class="to">&#160;&#160;lw</td>
+     </tr>
+     <tr>
+      <td></td>
+      <td></td>
+      <td class="from">h2f_reset&#160;&#160;</td>
+     </tr>
+     <tr>
+      <td></td>
+      <td></td>
+      <td class="to">&#160;&#160;reset</td>
      </tr>
      <tr style="height:6px">
       <td></td>
@@ -29540,7 +29570,7 @@ div.greydiv { vertical-align:top ; text-align:center ; background:#eeeeee ; bord
       <table>
        <tr>
         <td class="parametername">AUTO_GENERATION_ID</td>
-        <td class="parametervalue">1527399426</td>
+        <td class="parametervalue">1527740287</td>
        </tr>
        <tr>
         <td class="parametername">AUTO_UNIQUE_ID</td>
@@ -30415,6 +30445,75 @@ div.greydiv { vertical-align:top ; text-align:center ; background:#eeeeee ; bord
        </tr>
       </table>
      </td>
+    </tr>
+   </table>
+  </div>
+  <a name="module_Filter_0"> </a>
+  <div>
+   <hr/>
+   <h2>Filter_0</h2>Filter v1.4
+   <br/>
+   <div class="greydiv">
+    <table class="connectionboxes">
+     <tr>
+      <td class="neighbor" rowspan="6">
+       <a href="#module_ARM_A9_HPS_bridges">ARM_A9_HPS_bridges</a>
+      </td>
+      <td class="from">h2f&#160;&#160;</td>
+      <td class="main" rowspan="9">Filter_0</td>
+     </tr>
+     <tr>
+      <td class="to">&#160;&#160;hw</td>
+     </tr>
+     <tr>
+      <td class="from">h2f_lw&#160;&#160;</td>
+     </tr>
+     <tr>
+      <td class="to">&#160;&#160;lw</td>
+     </tr>
+     <tr>
+      <td class="from">h2f_reset&#160;&#160;</td>
+     </tr>
+     <tr>
+      <td class="to">&#160;&#160;reset</td>
+     </tr>
+     <tr style="height:6px">
+      <td></td>
+     </tr>
+     <tr>
+      <td class="neighbor" rowspan="2">
+       <a href="#module_System_PLL">System_PLL</a>
+      </td>
+      <td class="from">sys_clk&#160;&#160;</td>
+     </tr>
+     <tr>
+      <td class="to">&#160;&#160;clock</td>
+     </tr>
+    </table>
+   </div>
+   <br/>
+   <br/>
+   <table class="flowbox">
+    <tr>
+     <td class="parametersbox">
+      <h2>Parameters</h2>
+      <table>
+       <tr>
+        <td class="parametername">deviceFamily</td>
+        <td class="parametervalue">UNKNOWN</td>
+       </tr>
+       <tr>
+        <td class="parametername">generateLegacySim</td>
+        <td class="parametervalue">false</td>
+       </tr>
+      </table>
+     </td>
+    </tr>
+   </table>&#160;&#160;
+   <table class="flowbox">
+    <tr>
+     <td class="parametersbox">
+      <h2>Software Assignments</h2>(none)</td>
     </tr>
    </table>
   </div>
@@ -31956,7 +32055,7 @@ div.greydiv { vertical-align:top ; text-align:center ; background:#eeeeee ; bord
        </tr>
        <tr>
         <td class="parametername">timestamp</td>
-        <td class="parametervalue">1527399426</td>
+        <td class="parametervalue">1527740287</td>
        </tr>
        <tr>
         <td class="parametername">deviceFamily</td>
@@ -31981,7 +32080,7 @@ div.greydiv { vertical-align:top ; text-align:center ; background:#eeeeee ; bord
        </tr>
        <tr>
         <td class="parametername">TIMESTAMP</td>
-        <td class="parametervalue">1527399426</td>
+        <td class="parametervalue">1527740287</td>
        </tr>
       </table>
      </td>
@@ -32085,7 +32184,7 @@ div.greydiv { vertical-align:top ; text-align:center ; background:#eeeeee ; bord
       <table>
        <tr>
         <td class="parametername">AUTO_GENERATION_ID</td>
-        <td class="parametervalue">1527399426</td>
+        <td class="parametervalue">1527740287</td>
        </tr>
        <tr>
         <td class="parametername">AUTO_UNIQUE_ID</td>
@@ -33252,73 +33351,10 @@ div.greydiv { vertical-align:top ; text-align:center ; background:#eeeeee ; bord
     </tr>
    </table>
   </div>
-  <a name="module_new_component_0"> </a>
-  <div>
-   <hr/>
-   <h2>new_component_0</h2>new_component v1.0
-   <br/>
-   <div class="greydiv">
-    <table class="connectionboxes">
-     <tr>
-      <td class="neighbor" rowspan="2">
-       <a href="#module_ARM_A9_HPS_bridges">ARM_A9_HPS_bridges</a>
-      </td>
-      <td class="from">h2f&#160;&#160;</td>
-      <td class="main" rowspan="7">new_component_0</td>
-     </tr>
-     <tr>
-      <td class="to">&#160;&#160;avalon_slave_0</td>
-     </tr>
-     <tr style="height:6px">
-      <td></td>
-     </tr>
-     <tr>
-      <td class="neighbor" rowspan="4">
-       <a href="#module_System_PLL">System_PLL</a>
-      </td>
-      <td class="from">sys_clk&#160;&#160;</td>
-     </tr>
-     <tr>
-      <td class="to">&#160;&#160;clock</td>
-     </tr>
-     <tr>
-      <td class="from">reset_source&#160;&#160;</td>
-     </tr>
-     <tr>
-      <td class="to">&#160;&#160;reset</td>
-     </tr>
-    </table>
-   </div>
-   <br/>
-   <br/>
-   <table class="flowbox">
-    <tr>
-     <td class="parametersbox">
-      <h2>Parameters</h2>
-      <table>
-       <tr>
-        <td class="parametername">deviceFamily</td>
-        <td class="parametervalue">UNKNOWN</td>
-       </tr>
-       <tr>
-        <td class="parametername">generateLegacySim</td>
-        <td class="parametervalue">false</td>
-       </tr>
-      </table>
-     </td>
-    </tr>
-   </table>&#160;&#160;
-   <table class="flowbox">
-    <tr>
-     <td class="parametersbox">
-      <h2>Software Assignments</h2>(none)</td>
-    </tr>
-   </table>
-  </div>
   <table class="blueBar">
    <tr>
-    <td class="l">generation took 0.01 seconds</td>
-    <td class="r">rendering took 0.33 seconds</td>
+    <td class="l">generation took 0.02 seconds</td>
+    <td class="r">rendering took 0.55 seconds</td>
    </tr>
   </table>
  </body>

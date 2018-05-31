@@ -1,0 +1,70 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity test_shift_reg is
+end entity test_shift_reg;
+
+
+architecture test_shift of test_shift_reg is
+
+
+component shift_register is
+port (
+
+	clk, enable, reset : in std_logic;
+	data_in : in std_logic_vector(7 downto 0);
+	tap2, tap1, tap0 : out std_logic_vector(7 downto 0);
+	data_out : out std_logic_vector(7 downto 0)
+
+);
+end component shift_register;
+
+
+signal t_clk, enable_s, reset_s : std_logic := '0';
+signal input_s, data1, data2,  data3, d_out : std_logic_vector(7 downto 0) := (others => '0');
+
+
+begin
+
+sreg : shift_register port map (
+	clk => t_clk,
+	enable => enable_s,
+	reset => reset_s,
+	data_in => input_s,
+	tap2 => data1,
+	tap1 => data2,
+	tap0 => data3,
+	data_out => d_out
+);
+
+	data : process
+	begin
+	
+	input_s <= x"00",
+		x"00"after 4 ns,
+		x"00" after 8 ns,
+		x"FF" after 12 ns,
+		x"00" after 16 ns,
+		x"00" after 20 ns,
+		x"00" after 24 ns,
+		x"FF" after 28 ns,
+		x"FF" after 32 ns;
+		
+	enable_s <= '1' after 4 ns, '0' after 40 ns;
+
+	wait;
+	
+	end process;
+
+
+
+	clk_gen : process
+	begin
+		wait for 2 ns;
+		t_clk <= '0';
+		wait for 2 ns;
+		t_clk <= '1';
+	end process;
+
+end architecture test_shift;

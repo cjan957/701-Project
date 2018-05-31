@@ -1,0 +1,84 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity test_convolution is
+end entity test_convolution;
+
+architecture testing of test_convolution is
+
+component Convolution is 
+port (
+
+	clk, enable : in std_logic;
+	kernel : in std_logic_vector(2 downto 0);
+	input1,input2,input3,input4,input5,input6,input7,input8,input9 : in std_logic_vector(7 downto 0);
+	conv_result : out std_logic_vector(7 downto 0);
+	conv_done : out std_logic
+);
+end component Convolution;
+
+
+signal kernel_s : std_logic_vector(2 downto 0);
+signal in1,in2,in3,in4,in5,in6,in7,in8,in9,result : std_logic_vector(7 downto 0);
+
+signal clk_s, en_s, done : std_logic;
+
+begin
+
+test_conv : Convolution port map (
+
+	
+	clk => clk_s,
+	enable => en_s,
+	kernel => kernel_s,
+	input1 => in1,
+	input2 => in2,
+	input3 => in3,
+	input4 => in4,
+	input5 => in5,
+	input6 => in6,
+	input7 => in7,
+	input8 => in8,
+	input9 => in9,
+	
+	conv_result => result,
+	conv_done => done
+	
+	);
+
+	
+	test : process
+	begin
+	
+		wait for 2 ns;
+		clk_s <= '1';
+		wait for 2 ns;
+		clk_s <= '0';
+
+	end process;
+	
+	data : process
+	begin
+		
+		kernel_s <= "001", "000" after 15 ns;
+		
+		en_s <= '1','0' after 2 ns, '1' after 4 ns,  '0' after 15 ns;
+		
+		in1 <= x"00", x"00" after 4 ns;
+		in2 <= x"00", x"FF" after 4 ns;
+		in3 <= x"FF", x"00" after 4 ns;
+		in4 <= x"FF", x"FF" after 4 ns;
+		in5 <= x"00", x"FF" after 4 ns;
+		in6 <= x"00", x"00" after 4 ns;
+		in7 <= x"00", x"00" after 4 ns;
+		in8 <= x"00", x"FF" after 4 ns;
+		in9 <= x"FF", x"00" after 4 ns;	
+		
+		wait;
+	
+	end process;
+	
+	
+end architecture testing;
+

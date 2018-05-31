@@ -1,0 +1,33 @@
+{
+	"partitions" : [
+		{
+			"name" : "Top",
+			"pins" : [
+				{
+					"name" : "fifo_rdreq",
+					"strict" : false
+				},
+				{
+					"name" : "fifo_data_ready",
+					"strict" : false
+				},
+				{
+					"name" : "fifo_empty",
+					"strict" : false
+				},
+				{
+					"name" : "fifo_read_ack",
+					"strict" : false
+				},
+				{
+					"name" : "clk",
+					"strict" : false
+				},
+				{
+					"name" : "reset",
+					"strict" : false
+				}
+			]
+		}
+	]
+}

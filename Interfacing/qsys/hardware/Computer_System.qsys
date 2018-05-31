@@ -73,6 +73,14 @@
          type = "String";
       }
    }
+   element Computer_System
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
    element Expansion_JP1
    {
       datum _sortIndex
@@ -151,6 +159,35 @@
       {
          value = "1";
          type = "boolean";
+      }
+   }
+   element Filter_0
+   {
+      datum _sortIndex
+      {
+         value = "38";
+         type = "int";
+      }
+   }
+   element Filter_0.hw
+   {
+      datum baseAddress
+      {
+         value = "167772160";
+         type = "String";
+      }
+   }
+   element Filter_0.lw
+   {
+      datum _tags
+      {
+         value = "";
+         type = "String";
+      }
+      datum baseAddress
+      {
+         value = "65536";
+         type = "String";
       }
    }
    element HEX3_HEX0
@@ -623,22 +660,6 @@
       {
          value = "1";
          type = "boolean";
-      }
-   }
-   element new_component_0
-   {
-      datum _sortIndex
-      {
-         value = "38";
-         type = "int";
-      }
-   }
-   element new_component_0.avalon_slave_0
-   {
-      datum baseAddress
-      {
-         value = "167772160";
-         type = "String";
       }
    }
 }
@@ -1390,6 +1411,7 @@
   <parameter name="SLAVE_ADDRESS_WIDTH" value="21" />
   <parameter name="SUB_WINDOW_COUNT" value="1" />
  </module>
+ <module name="Filter_0" kind="Filter" version="1.4" enabled="1" />
  <module name="HEX3_HEX0" kind="altera_avalon_pio" version="16.1" enabled="1">
   <parameter name="bitClearingEdgeCapReg" value="false" />
   <parameter name="bitModifyingOutReg" value="false" />
@@ -2171,7 +2193,6 @@
      name="AUTO_VIDEO_IN_DMA_MASTER_ADDRESS_WIDTH"
      value="AddressWidth = -1" />
  </module>
- <module name="new_component_0" kind="new_component" version="1.0" enabled="1" />
  <connection
    kind="avalon"
    version="16.1"
@@ -2681,18 +2702,18 @@
    kind="avalon"
    version="16.1"
    start="ARM_A9_HPS.h2f_axi_master"
-   end="new_component_0.avalon_slave_0">
+   end="VGA_Subsystem.char_buffer_slave">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x0a000000" />
+  <parameter name="baseAddress" value="0x09000000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
    kind="avalon"
    version="16.1"
    start="ARM_A9_HPS.h2f_axi_master"
-   end="VGA_Subsystem.char_buffer_slave">
+   end="Filter_0.hw">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x09000000" />
+  <parameter name="baseAddress" value="0x0a000000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -2801,6 +2822,15 @@
    end="Video_In_Subsystem.edge_detection_control_slave">
   <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x3070" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="16.1"
+   start="ARM_A9_HPS.h2f_lw_axi_master"
+   end="Filter_0.lw">
+  <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x00010000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -3404,7 +3434,7 @@
    kind="clock"
    version="16.1"
    start="System_PLL.sys_clk"
-   end="new_component_0.clock" />
+   end="Filter_0.clock" />
  <connection
    kind="clock"
    version="16.1"
@@ -3810,6 +3840,11 @@
    kind="reset"
    version="16.1"
    start="ARM_A9_HPS.h2f_reset"
+   end="Filter_0.reset" />
+ <connection
+   kind="reset"
+   version="16.1"
+   start="ARM_A9_HPS.h2f_reset"
    end="Onchip_SRAM.reset1" />
  <connection
    kind="reset"
@@ -3976,11 +4011,6 @@
    version="16.1"
    start="System_PLL.reset_source"
    end="F2H_Mem_Window_FF800000.reset" />
- <connection
-   kind="reset"
-   version="16.1"
-   start="System_PLL.reset_source"
-   end="new_component_0.reset" />
  <connection
    kind="reset"
    version="16.1"

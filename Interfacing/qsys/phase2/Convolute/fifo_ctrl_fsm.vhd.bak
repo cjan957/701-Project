@@ -1,0 +1,14 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity fifo_ctrl_fsm is
+port( 
+
+);
+
+architecture beh of fifo_ctrl_fsm is
+begin
+
+
+end architecture beh

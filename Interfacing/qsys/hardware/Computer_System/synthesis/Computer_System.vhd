@@ -356,6 +356,21 @@ architecture rtl of Computer_System is
 		);
 	end component Computer_System_Audio_Subsystem;
 
+	component FIlter_interface is
+		port (
+			clock        : in  std_logic                     := 'X';             -- clk
+			resetn       : in  std_logic                     := 'X';             -- reset
+			writedata_hw : in  std_logic_vector(63 downto 0) := (others => 'X'); -- writedata
+			readdata_hw  : out std_logic_vector(63 downto 0);                    -- readdata
+			readn_hw     : in  std_logic                     := 'X';             -- read
+			writen_hw    : in  std_logic                     := 'X';             -- write
+			writedata_lw : in  std_logic_vector(31 downto 0) := (others => 'X'); -- writedata
+			readdata_lw  : out std_logic_vector(31 downto 0);                    -- readdata
+			readn_lw     : in  std_logic                     := 'X';             -- read
+			writen_lw    : in  std_logic                     := 'X'              -- write
+		);
+	end component FIlter_interface;
+
 	component Computer_System_HEX3_HEX0 is
 		port (
 			clk        : in  std_logic                     := 'X';             -- clk
@@ -541,17 +556,6 @@ architecture rtl of Computer_System is
 		);
 	end component Computer_System_VGA_Subsystem;
 
-	component reg32_avalon_interface is
-		port (
-			readn     : in  std_logic                     := 'X';             -- read
-			writen    : in  std_logic                     := 'X';             -- write
-			writedata : in  std_logic_vector(63 downto 0) := (others => 'X'); -- writedata
-			readdata  : out std_logic_vector(63 downto 0);                    -- readdata
-			clock     : in  std_logic                     := 'X';             -- clk
-			reset     : in  std_logic                     := 'X'              -- reset
-		);
-	end component reg32_avalon_interface;
-
 	component Computer_System_mm_interconnect_0 is
 		port (
 			ARM_A9_HPS_f2h_axi_slave_awid                                         : out std_logic_vector(7 downto 0);                     -- awid
@@ -627,179 +631,182 @@ architecture rtl of Computer_System is
 
 	component Computer_System_mm_interconnect_1 is
 		port (
-			ARM_A9_HPS_h2f_axi_master_awid                                        : in  std_logic_vector(11 downto 0)  := (others => 'X'); -- awid
-			ARM_A9_HPS_h2f_axi_master_awaddr                                      : in  std_logic_vector(29 downto 0)  := (others => 'X'); -- awaddr
-			ARM_A9_HPS_h2f_axi_master_awlen                                       : in  std_logic_vector(3 downto 0)   := (others => 'X'); -- awlen
-			ARM_A9_HPS_h2f_axi_master_awsize                                      : in  std_logic_vector(2 downto 0)   := (others => 'X'); -- awsize
-			ARM_A9_HPS_h2f_axi_master_awburst                                     : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- awburst
-			ARM_A9_HPS_h2f_axi_master_awlock                                      : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- awlock
-			ARM_A9_HPS_h2f_axi_master_awcache                                     : in  std_logic_vector(3 downto 0)   := (others => 'X'); -- awcache
-			ARM_A9_HPS_h2f_axi_master_awprot                                      : in  std_logic_vector(2 downto 0)   := (others => 'X'); -- awprot
-			ARM_A9_HPS_h2f_axi_master_awvalid                                     : in  std_logic                      := 'X';             -- awvalid
-			ARM_A9_HPS_h2f_axi_master_awready                                     : out std_logic;                                         -- awready
-			ARM_A9_HPS_h2f_axi_master_wid                                         : in  std_logic_vector(11 downto 0)  := (others => 'X'); -- wid
-			ARM_A9_HPS_h2f_axi_master_wdata                                       : in  std_logic_vector(127 downto 0) := (others => 'X'); -- wdata
-			ARM_A9_HPS_h2f_axi_master_wstrb                                       : in  std_logic_vector(15 downto 0)  := (others => 'X'); -- wstrb
-			ARM_A9_HPS_h2f_axi_master_wlast                                       : in  std_logic                      := 'X';             -- wlast
-			ARM_A9_HPS_h2f_axi_master_wvalid                                      : in  std_logic                      := 'X';             -- wvalid
-			ARM_A9_HPS_h2f_axi_master_wready                                      : out std_logic;                                         -- wready
-			ARM_A9_HPS_h2f_axi_master_bid                                         : out std_logic_vector(11 downto 0);                     -- bid
-			ARM_A9_HPS_h2f_axi_master_bresp                                       : out std_logic_vector(1 downto 0);                      -- bresp
-			ARM_A9_HPS_h2f_axi_master_bvalid                                      : out std_logic;                                         -- bvalid
-			ARM_A9_HPS_h2f_axi_master_bready                                      : in  std_logic                      := 'X';             -- bready
-			ARM_A9_HPS_h2f_axi_master_arid                                        : in  std_logic_vector(11 downto 0)  := (others => 'X'); -- arid
-			ARM_A9_HPS_h2f_axi_master_araddr                                      : in  std_logic_vector(29 downto 0)  := (others => 'X'); -- araddr
-			ARM_A9_HPS_h2f_axi_master_arlen                                       : in  std_logic_vector(3 downto 0)   := (others => 'X'); -- arlen
-			ARM_A9_HPS_h2f_axi_master_arsize                                      : in  std_logic_vector(2 downto 0)   := (others => 'X'); -- arsize
-			ARM_A9_HPS_h2f_axi_master_arburst                                     : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- arburst
-			ARM_A9_HPS_h2f_axi_master_arlock                                      : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- arlock
-			ARM_A9_HPS_h2f_axi_master_arcache                                     : in  std_logic_vector(3 downto 0)   := (others => 'X'); -- arcache
-			ARM_A9_HPS_h2f_axi_master_arprot                                      : in  std_logic_vector(2 downto 0)   := (others => 'X'); -- arprot
-			ARM_A9_HPS_h2f_axi_master_arvalid                                     : in  std_logic                      := 'X';             -- arvalid
-			ARM_A9_HPS_h2f_axi_master_arready                                     : out std_logic;                                         -- arready
-			ARM_A9_HPS_h2f_axi_master_rid                                         : out std_logic_vector(11 downto 0);                     -- rid
-			ARM_A9_HPS_h2f_axi_master_rdata                                       : out std_logic_vector(127 downto 0);                    -- rdata
-			ARM_A9_HPS_h2f_axi_master_rresp                                       : out std_logic_vector(1 downto 0);                      -- rresp
-			ARM_A9_HPS_h2f_axi_master_rlast                                       : out std_logic;                                         -- rlast
-			ARM_A9_HPS_h2f_axi_master_rvalid                                      : out std_logic;                                         -- rvalid
-			ARM_A9_HPS_h2f_axi_master_rready                                      : in  std_logic                      := 'X';             -- rready
-			System_PLL_sys_clk_clk                                                : in  std_logic                      := 'X';             -- clk
-			ARM_A9_HPS_h2f_axi_master_agent_clk_reset_reset_bridge_in_reset_reset : in  std_logic                      := 'X';             -- reset
-			new_component_0_reset_reset_bridge_in_reset_reset                     : in  std_logic                      := 'X';             -- reset
-			SDRAM_reset_reset_bridge_in_reset_reset                               : in  std_logic                      := 'X';             -- reset
-			VGA_Subsystem_sys_reset_reset_bridge_in_reset_reset                   : in  std_logic                      := 'X';             -- reset
-			VGA_Subsystem_pixel_dma_master_address                                : in  std_logic_vector(31 downto 0)  := (others => 'X'); -- address
-			VGA_Subsystem_pixel_dma_master_waitrequest                            : out std_logic;                                         -- waitrequest
-			VGA_Subsystem_pixel_dma_master_read                                   : in  std_logic                      := 'X';             -- read
-			VGA_Subsystem_pixel_dma_master_readdata                               : out std_logic_vector(7 downto 0);                      -- readdata
-			VGA_Subsystem_pixel_dma_master_readdatavalid                          : out std_logic;                                         -- readdatavalid
-			VGA_Subsystem_pixel_dma_master_lock                                   : in  std_logic                      := 'X';             -- lock
-			new_component_0_avalon_slave_0_write                                  : out std_logic;                                         -- write
-			new_component_0_avalon_slave_0_read                                   : out std_logic;                                         -- read
-			new_component_0_avalon_slave_0_readdata                               : in  std_logic_vector(63 downto 0)  := (others => 'X'); -- readdata
-			new_component_0_avalon_slave_0_writedata                              : out std_logic_vector(63 downto 0);                     -- writedata
-			Onchip_SRAM_s1_address                                                : out std_logic_vector(15 downto 0);                     -- address
-			Onchip_SRAM_s1_write                                                  : out std_logic;                                         -- write
-			Onchip_SRAM_s1_readdata                                               : in  std_logic_vector(31 downto 0)  := (others => 'X'); -- readdata
-			Onchip_SRAM_s1_writedata                                              : out std_logic_vector(31 downto 0);                     -- writedata
-			Onchip_SRAM_s1_byteenable                                             : out std_logic_vector(3 downto 0);                      -- byteenable
-			Onchip_SRAM_s1_chipselect                                             : out std_logic;                                         -- chipselect
-			Onchip_SRAM_s1_clken                                                  : out std_logic;                                         -- clken
-			Onchip_SRAM_s2_address                                                : out std_logic_vector(15 downto 0);                     -- address
-			Onchip_SRAM_s2_write                                                  : out std_logic;                                         -- write
-			Onchip_SRAM_s2_readdata                                               : in  std_logic_vector(31 downto 0)  := (others => 'X'); -- readdata
-			Onchip_SRAM_s2_writedata                                              : out std_logic_vector(31 downto 0);                     -- writedata
-			Onchip_SRAM_s2_byteenable                                             : out std_logic_vector(3 downto 0);                      -- byteenable
-			Onchip_SRAM_s2_chipselect                                             : out std_logic;                                         -- chipselect
-			Onchip_SRAM_s2_clken                                                  : out std_logic;                                         -- clken
-			SDRAM_s1_address                                                      : out std_logic_vector(24 downto 0);                     -- address
-			SDRAM_s1_write                                                        : out std_logic;                                         -- write
-			SDRAM_s1_read                                                         : out std_logic;                                         -- read
-			SDRAM_s1_readdata                                                     : in  std_logic_vector(15 downto 0)  := (others => 'X'); -- readdata
-			SDRAM_s1_writedata                                                    : out std_logic_vector(15 downto 0);                     -- writedata
-			SDRAM_s1_byteenable                                                   : out std_logic_vector(1 downto 0);                      -- byteenable
-			SDRAM_s1_readdatavalid                                                : in  std_logic                      := 'X';             -- readdatavalid
-			SDRAM_s1_waitrequest                                                  : in  std_logic                      := 'X';             -- waitrequest
-			SDRAM_s1_chipselect                                                   : out std_logic;                                         -- chipselect
-			VGA_Subsystem_char_buffer_slave_address                               : out std_logic_vector(12 downto 0);                     -- address
-			VGA_Subsystem_char_buffer_slave_write                                 : out std_logic;                                         -- write
-			VGA_Subsystem_char_buffer_slave_read                                  : out std_logic;                                         -- read
-			VGA_Subsystem_char_buffer_slave_readdata                              : in  std_logic_vector(7 downto 0)   := (others => 'X'); -- readdata
-			VGA_Subsystem_char_buffer_slave_writedata                             : out std_logic_vector(7 downto 0);                      -- writedata
-			VGA_Subsystem_char_buffer_slave_byteenable                            : out std_logic_vector(0 downto 0);                      -- byteenable
-			VGA_Subsystem_char_buffer_slave_waitrequest                           : in  std_logic                      := 'X';             -- waitrequest
-			VGA_Subsystem_char_buffer_slave_chipselect                            : out std_logic                                          -- chipselect
+			ARM_A9_HPS_h2f_axi_master_awid                      : in  std_logic_vector(11 downto 0)  := (others => 'X'); -- awid
+			ARM_A9_HPS_h2f_axi_master_awaddr                    : in  std_logic_vector(29 downto 0)  := (others => 'X'); -- awaddr
+			ARM_A9_HPS_h2f_axi_master_awlen                     : in  std_logic_vector(3 downto 0)   := (others => 'X'); -- awlen
+			ARM_A9_HPS_h2f_axi_master_awsize                    : in  std_logic_vector(2 downto 0)   := (others => 'X'); -- awsize
+			ARM_A9_HPS_h2f_axi_master_awburst                   : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- awburst
+			ARM_A9_HPS_h2f_axi_master_awlock                    : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- awlock
+			ARM_A9_HPS_h2f_axi_master_awcache                   : in  std_logic_vector(3 downto 0)   := (others => 'X'); -- awcache
+			ARM_A9_HPS_h2f_axi_master_awprot                    : in  std_logic_vector(2 downto 0)   := (others => 'X'); -- awprot
+			ARM_A9_HPS_h2f_axi_master_awvalid                   : in  std_logic                      := 'X';             -- awvalid
+			ARM_A9_HPS_h2f_axi_master_awready                   : out std_logic;                                         -- awready
+			ARM_A9_HPS_h2f_axi_master_wid                       : in  std_logic_vector(11 downto 0)  := (others => 'X'); -- wid
+			ARM_A9_HPS_h2f_axi_master_wdata                     : in  std_logic_vector(127 downto 0) := (others => 'X'); -- wdata
+			ARM_A9_HPS_h2f_axi_master_wstrb                     : in  std_logic_vector(15 downto 0)  := (others => 'X'); -- wstrb
+			ARM_A9_HPS_h2f_axi_master_wlast                     : in  std_logic                      := 'X';             -- wlast
+			ARM_A9_HPS_h2f_axi_master_wvalid                    : in  std_logic                      := 'X';             -- wvalid
+			ARM_A9_HPS_h2f_axi_master_wready                    : out std_logic;                                         -- wready
+			ARM_A9_HPS_h2f_axi_master_bid                       : out std_logic_vector(11 downto 0);                     -- bid
+			ARM_A9_HPS_h2f_axi_master_bresp                     : out std_logic_vector(1 downto 0);                      -- bresp
+			ARM_A9_HPS_h2f_axi_master_bvalid                    : out std_logic;                                         -- bvalid
+			ARM_A9_HPS_h2f_axi_master_bready                    : in  std_logic                      := 'X';             -- bready
+			ARM_A9_HPS_h2f_axi_master_arid                      : in  std_logic_vector(11 downto 0)  := (others => 'X'); -- arid
+			ARM_A9_HPS_h2f_axi_master_araddr                    : in  std_logic_vector(29 downto 0)  := (others => 'X'); -- araddr
+			ARM_A9_HPS_h2f_axi_master_arlen                     : in  std_logic_vector(3 downto 0)   := (others => 'X'); -- arlen
+			ARM_A9_HPS_h2f_axi_master_arsize                    : in  std_logic_vector(2 downto 0)   := (others => 'X'); -- arsize
+			ARM_A9_HPS_h2f_axi_master_arburst                   : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- arburst
+			ARM_A9_HPS_h2f_axi_master_arlock                    : in  std_logic_vector(1 downto 0)   := (others => 'X'); -- arlock
+			ARM_A9_HPS_h2f_axi_master_arcache                   : in  std_logic_vector(3 downto 0)   := (others => 'X'); -- arcache
+			ARM_A9_HPS_h2f_axi_master_arprot                    : in  std_logic_vector(2 downto 0)   := (others => 'X'); -- arprot
+			ARM_A9_HPS_h2f_axi_master_arvalid                   : in  std_logic                      := 'X';             -- arvalid
+			ARM_A9_HPS_h2f_axi_master_arready                   : out std_logic;                                         -- arready
+			ARM_A9_HPS_h2f_axi_master_rid                       : out std_logic_vector(11 downto 0);                     -- rid
+			ARM_A9_HPS_h2f_axi_master_rdata                     : out std_logic_vector(127 downto 0);                    -- rdata
+			ARM_A9_HPS_h2f_axi_master_rresp                     : out std_logic_vector(1 downto 0);                      -- rresp
+			ARM_A9_HPS_h2f_axi_master_rlast                     : out std_logic;                                         -- rlast
+			ARM_A9_HPS_h2f_axi_master_rvalid                    : out std_logic;                                         -- rvalid
+			ARM_A9_HPS_h2f_axi_master_rready                    : in  std_logic                      := 'X';             -- rready
+			System_PLL_sys_clk_clk                              : in  std_logic                      := 'X';             -- clk
+			Filter_0_reset_reset_bridge_in_reset_reset          : in  std_logic                      := 'X';             -- reset
+			SDRAM_reset_reset_bridge_in_reset_reset             : in  std_logic                      := 'X';             -- reset
+			VGA_Subsystem_sys_reset_reset_bridge_in_reset_reset : in  std_logic                      := 'X';             -- reset
+			VGA_Subsystem_pixel_dma_master_address              : in  std_logic_vector(31 downto 0)  := (others => 'X'); -- address
+			VGA_Subsystem_pixel_dma_master_waitrequest          : out std_logic;                                         -- waitrequest
+			VGA_Subsystem_pixel_dma_master_read                 : in  std_logic                      := 'X';             -- read
+			VGA_Subsystem_pixel_dma_master_readdata             : out std_logic_vector(7 downto 0);                      -- readdata
+			VGA_Subsystem_pixel_dma_master_readdatavalid        : out std_logic;                                         -- readdatavalid
+			VGA_Subsystem_pixel_dma_master_lock                 : in  std_logic                      := 'X';             -- lock
+			Filter_0_hw_write                                   : out std_logic;                                         -- write
+			Filter_0_hw_read                                    : out std_logic;                                         -- read
+			Filter_0_hw_readdata                                : in  std_logic_vector(63 downto 0)  := (others => 'X'); -- readdata
+			Filter_0_hw_writedata                               : out std_logic_vector(63 downto 0);                     -- writedata
+			Onchip_SRAM_s1_address                              : out std_logic_vector(15 downto 0);                     -- address
+			Onchip_SRAM_s1_write                                : out std_logic;                                         -- write
+			Onchip_SRAM_s1_readdata                             : in  std_logic_vector(31 downto 0)  := (others => 'X'); -- readdata
+			Onchip_SRAM_s1_writedata                            : out std_logic_vector(31 downto 0);                     -- writedata
+			Onchip_SRAM_s1_byteenable                           : out std_logic_vector(3 downto 0);                      -- byteenable
+			Onchip_SRAM_s1_chipselect                           : out std_logic;                                         -- chipselect
+			Onchip_SRAM_s1_clken                                : out std_logic;                                         -- clken
+			Onchip_SRAM_s2_address                              : out std_logic_vector(15 downto 0);                     -- address
+			Onchip_SRAM_s2_write                                : out std_logic;                                         -- write
+			Onchip_SRAM_s2_readdata                             : in  std_logic_vector(31 downto 0)  := (others => 'X'); -- readdata
+			Onchip_SRAM_s2_writedata                            : out std_logic_vector(31 downto 0);                     -- writedata
+			Onchip_SRAM_s2_byteenable                           : out std_logic_vector(3 downto 0);                      -- byteenable
+			Onchip_SRAM_s2_chipselect                           : out std_logic;                                         -- chipselect
+			Onchip_SRAM_s2_clken                                : out std_logic;                                         -- clken
+			SDRAM_s1_address                                    : out std_logic_vector(24 downto 0);                     -- address
+			SDRAM_s1_write                                      : out std_logic;                                         -- write
+			SDRAM_s1_read                                       : out std_logic;                                         -- read
+			SDRAM_s1_readdata                                   : in  std_logic_vector(15 downto 0)  := (others => 'X'); -- readdata
+			SDRAM_s1_writedata                                  : out std_logic_vector(15 downto 0);                     -- writedata
+			SDRAM_s1_byteenable                                 : out std_logic_vector(1 downto 0);                      -- byteenable
+			SDRAM_s1_readdatavalid                              : in  std_logic                      := 'X';             -- readdatavalid
+			SDRAM_s1_waitrequest                                : in  std_logic                      := 'X';             -- waitrequest
+			SDRAM_s1_chipselect                                 : out std_logic;                                         -- chipselect
+			VGA_Subsystem_char_buffer_slave_address             : out std_logic_vector(12 downto 0);                     -- address
+			VGA_Subsystem_char_buffer_slave_write               : out std_logic;                                         -- write
+			VGA_Subsystem_char_buffer_slave_read                : out std_logic;                                         -- read
+			VGA_Subsystem_char_buffer_slave_readdata            : in  std_logic_vector(7 downto 0)   := (others => 'X'); -- readdata
+			VGA_Subsystem_char_buffer_slave_writedata           : out std_logic_vector(7 downto 0);                      -- writedata
+			VGA_Subsystem_char_buffer_slave_byteenable          : out std_logic_vector(0 downto 0);                      -- byteenable
+			VGA_Subsystem_char_buffer_slave_waitrequest         : in  std_logic                      := 'X';             -- waitrequest
+			VGA_Subsystem_char_buffer_slave_chipselect          : out std_logic                                          -- chipselect
 		);
 	end component Computer_System_mm_interconnect_1;
 
 	component Computer_System_mm_interconnect_2 is
 		port (
-			ARM_A9_HPS_h2f_lw_axi_master_awid                                        : in  std_logic_vector(11 downto 0) := (others => 'X'); -- awid
-			ARM_A9_HPS_h2f_lw_axi_master_awaddr                                      : in  std_logic_vector(20 downto 0) := (others => 'X'); -- awaddr
-			ARM_A9_HPS_h2f_lw_axi_master_awlen                                       : in  std_logic_vector(3 downto 0)  := (others => 'X'); -- awlen
-			ARM_A9_HPS_h2f_lw_axi_master_awsize                                      : in  std_logic_vector(2 downto 0)  := (others => 'X'); -- awsize
-			ARM_A9_HPS_h2f_lw_axi_master_awburst                                     : in  std_logic_vector(1 downto 0)  := (others => 'X'); -- awburst
-			ARM_A9_HPS_h2f_lw_axi_master_awlock                                      : in  std_logic_vector(1 downto 0)  := (others => 'X'); -- awlock
-			ARM_A9_HPS_h2f_lw_axi_master_awcache                                     : in  std_logic_vector(3 downto 0)  := (others => 'X'); -- awcache
-			ARM_A9_HPS_h2f_lw_axi_master_awprot                                      : in  std_logic_vector(2 downto 0)  := (others => 'X'); -- awprot
-			ARM_A9_HPS_h2f_lw_axi_master_awvalid                                     : in  std_logic                     := 'X';             -- awvalid
-			ARM_A9_HPS_h2f_lw_axi_master_awready                                     : out std_logic;                                        -- awready
-			ARM_A9_HPS_h2f_lw_axi_master_wid                                         : in  std_logic_vector(11 downto 0) := (others => 'X'); -- wid
-			ARM_A9_HPS_h2f_lw_axi_master_wdata                                       : in  std_logic_vector(31 downto 0) := (others => 'X'); -- wdata
-			ARM_A9_HPS_h2f_lw_axi_master_wstrb                                       : in  std_logic_vector(3 downto 0)  := (others => 'X'); -- wstrb
-			ARM_A9_HPS_h2f_lw_axi_master_wlast                                       : in  std_logic                     := 'X';             -- wlast
-			ARM_A9_HPS_h2f_lw_axi_master_wvalid                                      : in  std_logic                     := 'X';             -- wvalid
-			ARM_A9_HPS_h2f_lw_axi_master_wready                                      : out std_logic;                                        -- wready
-			ARM_A9_HPS_h2f_lw_axi_master_bid                                         : out std_logic_vector(11 downto 0);                    -- bid
-			ARM_A9_HPS_h2f_lw_axi_master_bresp                                       : out std_logic_vector(1 downto 0);                     -- bresp
-			ARM_A9_HPS_h2f_lw_axi_master_bvalid                                      : out std_logic;                                        -- bvalid
-			ARM_A9_HPS_h2f_lw_axi_master_bready                                      : in  std_logic                     := 'X';             -- bready
-			ARM_A9_HPS_h2f_lw_axi_master_arid                                        : in  std_logic_vector(11 downto 0) := (others => 'X'); -- arid
-			ARM_A9_HPS_h2f_lw_axi_master_araddr                                      : in  std_logic_vector(20 downto 0) := (others => 'X'); -- araddr
-			ARM_A9_HPS_h2f_lw_axi_master_arlen                                       : in  std_logic_vector(3 downto 0)  := (others => 'X'); -- arlen
-			ARM_A9_HPS_h2f_lw_axi_master_arsize                                      : in  std_logic_vector(2 downto 0)  := (others => 'X'); -- arsize
-			ARM_A9_HPS_h2f_lw_axi_master_arburst                                     : in  std_logic_vector(1 downto 0)  := (others => 'X'); -- arburst
-			ARM_A9_HPS_h2f_lw_axi_master_arlock                                      : in  std_logic_vector(1 downto 0)  := (others => 'X'); -- arlock
-			ARM_A9_HPS_h2f_lw_axi_master_arcache                                     : in  std_logic_vector(3 downto 0)  := (others => 'X'); -- arcache
-			ARM_A9_HPS_h2f_lw_axi_master_arprot                                      : in  std_logic_vector(2 downto 0)  := (others => 'X'); -- arprot
-			ARM_A9_HPS_h2f_lw_axi_master_arvalid                                     : in  std_logic                     := 'X';             -- arvalid
-			ARM_A9_HPS_h2f_lw_axi_master_arready                                     : out std_logic;                                        -- arready
-			ARM_A9_HPS_h2f_lw_axi_master_rid                                         : out std_logic_vector(11 downto 0);                    -- rid
-			ARM_A9_HPS_h2f_lw_axi_master_rdata                                       : out std_logic_vector(31 downto 0);                    -- rdata
-			ARM_A9_HPS_h2f_lw_axi_master_rresp                                       : out std_logic_vector(1 downto 0);                     -- rresp
-			ARM_A9_HPS_h2f_lw_axi_master_rlast                                       : out std_logic;                                        -- rlast
-			ARM_A9_HPS_h2f_lw_axi_master_rvalid                                      : out std_logic;                                        -- rvalid
-			ARM_A9_HPS_h2f_lw_axi_master_rready                                      : in  std_logic                     := 'X';             -- rready
-			System_PLL_sys_clk_clk                                                   : in  std_logic                     := 'X';             -- clk
-			ARM_A9_HPS_h2f_lw_axi_master_agent_clk_reset_reset_bridge_in_reset_reset : in  std_logic                     := 'X';             -- reset
-			Audio_Subsystem_sys_reset_reset_bridge_in_reset_reset                    : in  std_logic                     := 'X';             -- reset
-			AV_Config_reset_reset_bridge_in_reset_reset                              : in  std_logic                     := 'X';             -- reset
-			Audio_Subsystem_audio_slave_address                                      : out std_logic_vector(1 downto 0);                     -- address
-			Audio_Subsystem_audio_slave_write                                        : out std_logic;                                        -- write
-			Audio_Subsystem_audio_slave_read                                         : out std_logic;                                        -- read
-			Audio_Subsystem_audio_slave_readdata                                     : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
-			Audio_Subsystem_audio_slave_writedata                                    : out std_logic_vector(31 downto 0);                    -- writedata
-			Audio_Subsystem_audio_slave_chipselect                                   : out std_logic;                                        -- chipselect
-			AV_Config_avalon_av_config_slave_address                                 : out std_logic_vector(1 downto 0);                     -- address
-			AV_Config_avalon_av_config_slave_write                                   : out std_logic;                                        -- write
-			AV_Config_avalon_av_config_slave_read                                    : out std_logic;                                        -- read
-			AV_Config_avalon_av_config_slave_readdata                                : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
-			AV_Config_avalon_av_config_slave_writedata                               : out std_logic_vector(31 downto 0);                    -- writedata
-			AV_Config_avalon_av_config_slave_byteenable                              : out std_logic_vector(3 downto 0);                     -- byteenable
-			AV_Config_avalon_av_config_slave_waitrequest                             : in  std_logic                     := 'X';             -- waitrequest
-			HEX3_HEX0_s1_address                                                     : out std_logic_vector(1 downto 0);                     -- address
-			HEX3_HEX0_s1_write                                                       : out std_logic;                                        -- write
-			HEX3_HEX0_s1_readdata                                                    : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
-			HEX3_HEX0_s1_writedata                                                   : out std_logic_vector(31 downto 0);                    -- writedata
-			HEX3_HEX0_s1_chipselect                                                  : out std_logic;                                        -- chipselect
-			LEDs_s1_address                                                          : out std_logic_vector(1 downto 0);                     -- address
-			LEDs_s1_write                                                            : out std_logic;                                        -- write
-			LEDs_s1_readdata                                                         : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
-			LEDs_s1_writedata                                                        : out std_logic_vector(31 downto 0);                    -- writedata
-			LEDs_s1_chipselect                                                       : out std_logic;                                        -- chipselect
-			Pixel_DMA_Addr_Translation_slave_address                                 : out std_logic_vector(1 downto 0);                     -- address
-			Pixel_DMA_Addr_Translation_slave_write                                   : out std_logic;                                        -- write
-			Pixel_DMA_Addr_Translation_slave_read                                    : out std_logic;                                        -- read
-			Pixel_DMA_Addr_Translation_slave_readdata                                : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
-			Pixel_DMA_Addr_Translation_slave_writedata                               : out std_logic_vector(31 downto 0);                    -- writedata
-			Pixel_DMA_Addr_Translation_slave_byteenable                              : out std_logic_vector(3 downto 0);                     -- byteenable
-			Pixel_DMA_Addr_Translation_slave_waitrequest                             : in  std_logic                     := 'X';             -- waitrequest
-			Pushbuttons_s1_address                                                   : out std_logic_vector(1 downto 0);                     -- address
-			Pushbuttons_s1_write                                                     : out std_logic;                                        -- write
-			Pushbuttons_s1_readdata                                                  : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
-			Pushbuttons_s1_writedata                                                 : out std_logic_vector(31 downto 0);                    -- writedata
-			Pushbuttons_s1_chipselect                                                : out std_logic;                                        -- chipselect
-			Slider_Switches_s1_address                                               : out std_logic_vector(1 downto 0);                     -- address
-			Slider_Switches_s1_readdata                                              : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
-			SysID_control_slave_address                                              : out std_logic_vector(0 downto 0);                     -- address
-			SysID_control_slave_readdata                                             : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
-			VGA_Subsystem_char_buffer_control_slave_address                          : out std_logic_vector(0 downto 0);                     -- address
-			VGA_Subsystem_char_buffer_control_slave_write                            : out std_logic;                                        -- write
-			VGA_Subsystem_char_buffer_control_slave_read                             : out std_logic;                                        -- read
-			VGA_Subsystem_char_buffer_control_slave_readdata                         : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
-			VGA_Subsystem_char_buffer_control_slave_writedata                        : out std_logic_vector(31 downto 0);                    -- writedata
-			VGA_Subsystem_char_buffer_control_slave_byteenable                       : out std_logic_vector(3 downto 0);                     -- byteenable
-			VGA_Subsystem_char_buffer_control_slave_chipselect                       : out std_logic                                         -- chipselect
+			ARM_A9_HPS_h2f_lw_axi_master_awid                     : in  std_logic_vector(11 downto 0) := (others => 'X'); -- awid
+			ARM_A9_HPS_h2f_lw_axi_master_awaddr                   : in  std_logic_vector(20 downto 0) := (others => 'X'); -- awaddr
+			ARM_A9_HPS_h2f_lw_axi_master_awlen                    : in  std_logic_vector(3 downto 0)  := (others => 'X'); -- awlen
+			ARM_A9_HPS_h2f_lw_axi_master_awsize                   : in  std_logic_vector(2 downto 0)  := (others => 'X'); -- awsize
+			ARM_A9_HPS_h2f_lw_axi_master_awburst                  : in  std_logic_vector(1 downto 0)  := (others => 'X'); -- awburst
+			ARM_A9_HPS_h2f_lw_axi_master_awlock                   : in  std_logic_vector(1 downto 0)  := (others => 'X'); -- awlock
+			ARM_A9_HPS_h2f_lw_axi_master_awcache                  : in  std_logic_vector(3 downto 0)  := (others => 'X'); -- awcache
+			ARM_A9_HPS_h2f_lw_axi_master_awprot                   : in  std_logic_vector(2 downto 0)  := (others => 'X'); -- awprot
+			ARM_A9_HPS_h2f_lw_axi_master_awvalid                  : in  std_logic                     := 'X';             -- awvalid
+			ARM_A9_HPS_h2f_lw_axi_master_awready                  : out std_logic;                                        -- awready
+			ARM_A9_HPS_h2f_lw_axi_master_wid                      : in  std_logic_vector(11 downto 0) := (others => 'X'); -- wid
+			ARM_A9_HPS_h2f_lw_axi_master_wdata                    : in  std_logic_vector(31 downto 0) := (others => 'X'); -- wdata
+			ARM_A9_HPS_h2f_lw_axi_master_wstrb                    : in  std_logic_vector(3 downto 0)  := (others => 'X'); -- wstrb
+			ARM_A9_HPS_h2f_lw_axi_master_wlast                    : in  std_logic                     := 'X';             -- wlast
+			ARM_A9_HPS_h2f_lw_axi_master_wvalid                   : in  std_logic                     := 'X';             -- wvalid
+			ARM_A9_HPS_h2f_lw_axi_master_wready                   : out std_logic;                                        -- wready
+			ARM_A9_HPS_h2f_lw_axi_master_bid                      : out std_logic_vector(11 downto 0);                    -- bid
+			ARM_A9_HPS_h2f_lw_axi_master_bresp                    : out std_logic_vector(1 downto 0);                     -- bresp
+			ARM_A9_HPS_h2f_lw_axi_master_bvalid                   : out std_logic;                                        -- bvalid
+			ARM_A9_HPS_h2f_lw_axi_master_bready                   : in  std_logic                     := 'X';             -- bready
+			ARM_A9_HPS_h2f_lw_axi_master_arid                     : in  std_logic_vector(11 downto 0) := (others => 'X'); -- arid
+			ARM_A9_HPS_h2f_lw_axi_master_araddr                   : in  std_logic_vector(20 downto 0) := (others => 'X'); -- araddr
+			ARM_A9_HPS_h2f_lw_axi_master_arlen                    : in  std_logic_vector(3 downto 0)  := (others => 'X'); -- arlen
+			ARM_A9_HPS_h2f_lw_axi_master_arsize                   : in  std_logic_vector(2 downto 0)  := (others => 'X'); -- arsize
+			ARM_A9_HPS_h2f_lw_axi_master_arburst                  : in  std_logic_vector(1 downto 0)  := (others => 'X'); -- arburst
+			ARM_A9_HPS_h2f_lw_axi_master_arlock                   : in  std_logic_vector(1 downto 0)  := (others => 'X'); -- arlock
+			ARM_A9_HPS_h2f_lw_axi_master_arcache                  : in  std_logic_vector(3 downto 0)  := (others => 'X'); -- arcache
+			ARM_A9_HPS_h2f_lw_axi_master_arprot                   : in  std_logic_vector(2 downto 0)  := (others => 'X'); -- arprot
+			ARM_A9_HPS_h2f_lw_axi_master_arvalid                  : in  std_logic                     := 'X';             -- arvalid
+			ARM_A9_HPS_h2f_lw_axi_master_arready                  : out std_logic;                                        -- arready
+			ARM_A9_HPS_h2f_lw_axi_master_rid                      : out std_logic_vector(11 downto 0);                    -- rid
+			ARM_A9_HPS_h2f_lw_axi_master_rdata                    : out std_logic_vector(31 downto 0);                    -- rdata
+			ARM_A9_HPS_h2f_lw_axi_master_rresp                    : out std_logic_vector(1 downto 0);                     -- rresp
+			ARM_A9_HPS_h2f_lw_axi_master_rlast                    : out std_logic;                                        -- rlast
+			ARM_A9_HPS_h2f_lw_axi_master_rvalid                   : out std_logic;                                        -- rvalid
+			ARM_A9_HPS_h2f_lw_axi_master_rready                   : in  std_logic                     := 'X';             -- rready
+			System_PLL_sys_clk_clk                                : in  std_logic                     := 'X';             -- clk
+			Audio_Subsystem_sys_reset_reset_bridge_in_reset_reset : in  std_logic                     := 'X';             -- reset
+			AV_Config_reset_reset_bridge_in_reset_reset           : in  std_logic                     := 'X';             -- reset
+			Filter_0_reset_reset_bridge_in_reset_reset            : in  std_logic                     := 'X';             -- reset
+			Audio_Subsystem_audio_slave_address                   : out std_logic_vector(1 downto 0);                     -- address
+			Audio_Subsystem_audio_slave_write                     : out std_logic;                                        -- write
+			Audio_Subsystem_audio_slave_read                      : out std_logic;                                        -- read
+			Audio_Subsystem_audio_slave_readdata                  : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
+			Audio_Subsystem_audio_slave_writedata                 : out std_logic_vector(31 downto 0);                    -- writedata
+			Audio_Subsystem_audio_slave_chipselect                : out std_logic;                                        -- chipselect
+			AV_Config_avalon_av_config_slave_address              : out std_logic_vector(1 downto 0);                     -- address
+			AV_Config_avalon_av_config_slave_write                : out std_logic;                                        -- write
+			AV_Config_avalon_av_config_slave_read                 : out std_logic;                                        -- read
+			AV_Config_avalon_av_config_slave_readdata             : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
+			AV_Config_avalon_av_config_slave_writedata            : out std_logic_vector(31 downto 0);                    -- writedata
+			AV_Config_avalon_av_config_slave_byteenable           : out std_logic_vector(3 downto 0);                     -- byteenable
+			AV_Config_avalon_av_config_slave_waitrequest          : in  std_logic                     := 'X';             -- waitrequest
+			Filter_0_lw_write                                     : out std_logic;                                        -- write
+			Filter_0_lw_read                                      : out std_logic;                                        -- read
+			Filter_0_lw_readdata                                  : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
+			Filter_0_lw_writedata                                 : out std_logic_vector(31 downto 0);                    -- writedata
+			HEX3_HEX0_s1_address                                  : out std_logic_vector(1 downto 0);                     -- address
+			HEX3_HEX0_s1_write                                    : out std_logic;                                        -- write
+			HEX3_HEX0_s1_readdata                                 : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
+			HEX3_HEX0_s1_writedata                                : out std_logic_vector(31 downto 0);                    -- writedata
+			HEX3_HEX0_s1_chipselect                               : out std_logic;                                        -- chipselect
+			LEDs_s1_address                                       : out std_logic_vector(1 downto 0);                     -- address
+			LEDs_s1_write                                         : out std_logic;                                        -- write
+			LEDs_s1_readdata                                      : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
+			LEDs_s1_writedata                                     : out std_logic_vector(31 downto 0);                    -- writedata
+			LEDs_s1_chipselect                                    : out std_logic;                                        -- chipselect
+			Pixel_DMA_Addr_Translation_slave_address              : out std_logic_vector(1 downto 0);                     -- address
+			Pixel_DMA_Addr_Translation_slave_write                : out std_logic;                                        -- write
+			Pixel_DMA_Addr_Translation_slave_read                 : out std_logic;                                        -- read
+			Pixel_DMA_Addr_Translation_slave_readdata             : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
+			Pixel_DMA_Addr_Translation_slave_writedata            : out std_logic_vector(31 downto 0);                    -- writedata
+			Pixel_DMA_Addr_Translation_slave_byteenable           : out std_logic_vector(3 downto 0);                     -- byteenable
+			Pixel_DMA_Addr_Translation_slave_waitrequest          : in  std_logic                     := 'X';             -- waitrequest
+			Pushbuttons_s1_address                                : out std_logic_vector(1 downto 0);                     -- address
+			Pushbuttons_s1_write                                  : out std_logic;                                        -- write
+			Pushbuttons_s1_readdata                               : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
+			Pushbuttons_s1_writedata                              : out std_logic_vector(31 downto 0);                    -- writedata
+			Pushbuttons_s1_chipselect                             : out std_logic;                                        -- chipselect
+			Slider_Switches_s1_address                            : out std_logic_vector(1 downto 0);                     -- address
+			Slider_Switches_s1_readdata                           : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
+			SysID_control_slave_address                           : out std_logic_vector(0 downto 0);                     -- address
+			SysID_control_slave_readdata                          : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
+			VGA_Subsystem_char_buffer_control_slave_address       : out std_logic_vector(0 downto 0);                     -- address
+			VGA_Subsystem_char_buffer_control_slave_write         : out std_logic;                                        -- write
+			VGA_Subsystem_char_buffer_control_slave_read          : out std_logic;                                        -- read
+			VGA_Subsystem_char_buffer_control_slave_readdata      : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
+			VGA_Subsystem_char_buffer_control_slave_writedata     : out std_logic_vector(31 downto 0);                    -- writedata
+			VGA_Subsystem_char_buffer_control_slave_byteenable    : out std_logic_vector(3 downto 0);                     -- byteenable
+			VGA_Subsystem_char_buffer_control_slave_chipselect    : out std_logic                                         -- chipselect
 		);
 	end component Computer_System_mm_interconnect_2;
 
@@ -974,7 +981,7 @@ architecture rtl of Computer_System is
 		);
 	end component computer_system_rst_controller_001;
 
-	component computer_system_rst_controller_003 is
+	component computer_system_rst_controller_002 is
 		generic (
 			NUM_RESET_INPUTS          : integer := 6;
 			OUTPUT_RESET_SYNC_EDGES   : string  := "deassert";
@@ -1038,7 +1045,7 @@ architecture rtl of Computer_System is
 			reset_in15     : in  std_logic := 'X'; -- reset
 			reset_req_in15 : in  std_logic := 'X'  -- reset_req
 		);
-	end component computer_system_rst_controller_003;
+	end component computer_system_rst_controller_002;
 
 	component computer_system_f2h_mem_window_00000000 is
 		generic (
@@ -1166,7 +1173,7 @@ architecture rtl of Computer_System is
 		);
 	end component computer_system_f2h_mem_window_ff800000;
 
-	signal system_pll_sys_clk_clk                                               : std_logic;                      -- System_PLL:sys_clk_clk -> [ARM_A9_HPS:f2h_axi_clk, ARM_A9_HPS:h2f_axi_clk, ARM_A9_HPS:h2f_lw_axi_clk, AV_Config:clk, Audio_Subsystem:sys_clk_clk, F2H_Mem_Window_00000000:clk, F2H_Mem_Window_FF600000:clk, F2H_Mem_Window_FF800000:clk, HEX3_HEX0:clk, LEDs:clk, Onchip_SRAM:clk, Pixel_DMA_Addr_Translation:clk, Pushbuttons:clk, SDRAM:clk, Slider_Switches:clk, SysID:clock, VGA_Subsystem:sys_clk_clk, mm_interconnect_0:System_PLL_sys_clk_clk, mm_interconnect_1:System_PLL_sys_clk_clk, mm_interconnect_2:System_PLL_sys_clk_clk, mm_interconnect_3:System_PLL_sys_clk_clk, new_component_0:clock, rst_controller:clk, rst_controller_003:clk, rst_controller_004:clk]
+	signal system_pll_sys_clk_clk                                               : std_logic;                      -- System_PLL:sys_clk_clk -> [ARM_A9_HPS:f2h_axi_clk, ARM_A9_HPS:h2f_axi_clk, ARM_A9_HPS:h2f_lw_axi_clk, AV_Config:clk, Audio_Subsystem:sys_clk_clk, F2H_Mem_Window_00000000:clk, F2H_Mem_Window_FF600000:clk, F2H_Mem_Window_FF800000:clk, Filter_0:clock, HEX3_HEX0:clk, LEDs:clk, Onchip_SRAM:clk, Pixel_DMA_Addr_Translation:clk, Pushbuttons:clk, SDRAM:clk, Slider_Switches:clk, SysID:clock, VGA_Subsystem:sys_clk_clk, mm_interconnect_0:System_PLL_sys_clk_clk, mm_interconnect_1:System_PLL_sys_clk_clk, mm_interconnect_2:System_PLL_sys_clk_clk, mm_interconnect_3:System_PLL_sys_clk_clk, rst_controller:clk, rst_controller_002:clk]
 	signal f2h_mem_window_00000000_expanded_master_waitrequest                  : std_logic;                      -- mm_interconnect_0:F2H_Mem_Window_00000000_expanded_master_waitrequest -> F2H_Mem_Window_00000000:avm_m0_waitrequest
 	signal f2h_mem_window_00000000_expanded_master_readdata                     : std_logic_vector(31 downto 0);  -- mm_interconnect_0:F2H_Mem_Window_00000000_expanded_master_readdata -> F2H_Mem_Window_00000000:avm_m0_readdata
 	signal f2h_mem_window_00000000_expanded_master_address                      : std_logic_vector(31 downto 0);  -- F2H_Mem_Window_00000000:avm_m0_address -> mm_interconnect_0:F2H_Mem_Window_00000000_expanded_master_address
@@ -1274,10 +1281,6 @@ architecture rtl of Computer_System is
 	signal vga_subsystem_pixel_dma_master_read                                  : std_logic;                      -- VGA_Subsystem:pixel_dma_master_read -> mm_interconnect_1:VGA_Subsystem_pixel_dma_master_read
 	signal vga_subsystem_pixel_dma_master_readdatavalid                         : std_logic;                      -- mm_interconnect_1:VGA_Subsystem_pixel_dma_master_readdatavalid -> VGA_Subsystem:pixel_dma_master_readdatavalid
 	signal vga_subsystem_pixel_dma_master_lock                                  : std_logic;                      -- VGA_Subsystem:pixel_dma_master_lock -> mm_interconnect_1:VGA_Subsystem_pixel_dma_master_lock
-	signal mm_interconnect_1_new_component_0_avalon_slave_0_readdata            : std_logic_vector(63 downto 0);  -- new_component_0:readdata -> mm_interconnect_1:new_component_0_avalon_slave_0_readdata
-	signal mm_interconnect_1_new_component_0_avalon_slave_0_read                : std_logic;                      -- mm_interconnect_1:new_component_0_avalon_slave_0_read -> new_component_0:readn
-	signal mm_interconnect_1_new_component_0_avalon_slave_0_write               : std_logic;                      -- mm_interconnect_1:new_component_0_avalon_slave_0_write -> new_component_0:writen
-	signal mm_interconnect_1_new_component_0_avalon_slave_0_writedata           : std_logic_vector(63 downto 0);  -- mm_interconnect_1:new_component_0_avalon_slave_0_writedata -> new_component_0:writedata
 	signal mm_interconnect_1_vga_subsystem_char_buffer_slave_chipselect         : std_logic;                      -- mm_interconnect_1:VGA_Subsystem_char_buffer_slave_chipselect -> VGA_Subsystem:char_buffer_slave_chipselect
 	signal mm_interconnect_1_vga_subsystem_char_buffer_slave_readdata           : std_logic_vector(7 downto 0);   -- VGA_Subsystem:char_buffer_slave_readdata -> mm_interconnect_1:VGA_Subsystem_char_buffer_slave_readdata
 	signal mm_interconnect_1_vga_subsystem_char_buffer_slave_waitrequest        : std_logic;                      -- VGA_Subsystem:char_buffer_slave_waitrequest -> mm_interconnect_1:VGA_Subsystem_char_buffer_slave_waitrequest
@@ -1286,6 +1289,10 @@ architecture rtl of Computer_System is
 	signal mm_interconnect_1_vga_subsystem_char_buffer_slave_byteenable         : std_logic_vector(0 downto 0);   -- mm_interconnect_1:VGA_Subsystem_char_buffer_slave_byteenable -> VGA_Subsystem:char_buffer_slave_byteenable
 	signal mm_interconnect_1_vga_subsystem_char_buffer_slave_write              : std_logic;                      -- mm_interconnect_1:VGA_Subsystem_char_buffer_slave_write -> VGA_Subsystem:char_buffer_slave_write
 	signal mm_interconnect_1_vga_subsystem_char_buffer_slave_writedata          : std_logic_vector(7 downto 0);   -- mm_interconnect_1:VGA_Subsystem_char_buffer_slave_writedata -> VGA_Subsystem:char_buffer_slave_writedata
+	signal mm_interconnect_1_filter_0_hw_readdata                               : std_logic_vector(63 downto 0);  -- Filter_0:readdata_hw -> mm_interconnect_1:Filter_0_hw_readdata
+	signal mm_interconnect_1_filter_0_hw_read                                   : std_logic;                      -- mm_interconnect_1:Filter_0_hw_read -> Filter_0:readn_hw
+	signal mm_interconnect_1_filter_0_hw_write                                  : std_logic;                      -- mm_interconnect_1:Filter_0_hw_write -> Filter_0:writen_hw
+	signal mm_interconnect_1_filter_0_hw_writedata                              : std_logic_vector(63 downto 0);  -- mm_interconnect_1:Filter_0_hw_writedata -> Filter_0:writedata_hw
 	signal mm_interconnect_1_sdram_s1_chipselect                                : std_logic;                      -- mm_interconnect_1:SDRAM_s1_chipselect -> SDRAM:az_cs
 	signal mm_interconnect_1_sdram_s1_readdata                                  : std_logic_vector(15 downto 0);  -- SDRAM:za_data -> mm_interconnect_1:SDRAM_s1_readdata
 	signal mm_interconnect_1_sdram_s1_waitrequest                               : std_logic;                      -- SDRAM:za_waitrequest -> mm_interconnect_1:SDRAM_s1_waitrequest
@@ -1367,6 +1374,10 @@ architecture rtl of Computer_System is
 	signal mm_interconnect_2_vga_subsystem_char_buffer_control_slave_writedata  : std_logic_vector(31 downto 0);  -- mm_interconnect_2:VGA_Subsystem_char_buffer_control_slave_writedata -> VGA_Subsystem:char_buffer_control_slave_writedata
 	signal mm_interconnect_2_sysid_control_slave_readdata                       : std_logic_vector(31 downto 0);  -- SysID:readdata -> mm_interconnect_2:SysID_control_slave_readdata
 	signal mm_interconnect_2_sysid_control_slave_address                        : std_logic_vector(0 downto 0);   -- mm_interconnect_2:SysID_control_slave_address -> SysID:address
+	signal mm_interconnect_2_filter_0_lw_readdata                               : std_logic_vector(31 downto 0);  -- Filter_0:readdata_lw -> mm_interconnect_2:Filter_0_lw_readdata
+	signal mm_interconnect_2_filter_0_lw_read                                   : std_logic;                      -- mm_interconnect_2:Filter_0_lw_read -> Filter_0:readn_lw
+	signal mm_interconnect_2_filter_0_lw_write                                  : std_logic;                      -- mm_interconnect_2:Filter_0_lw_write -> Filter_0:writen_lw
+	signal mm_interconnect_2_filter_0_lw_writedata                              : std_logic_vector(31 downto 0);  -- mm_interconnect_2:Filter_0_lw_writedata -> Filter_0:writedata_lw
 	signal mm_interconnect_2_leds_s1_chipselect                                 : std_logic;                      -- mm_interconnect_2:LEDs_s1_chipselect -> LEDs:chipselect
 	signal mm_interconnect_2_leds_s1_readdata                                   : std_logic_vector(31 downto 0);  -- LEDs:readdata -> mm_interconnect_2:LEDs_s1_readdata
 	signal mm_interconnect_2_leds_s1_address                                    : std_logic_vector(1 downto 0);   -- mm_interconnect_2:LEDs_s1_address -> LEDs:address
@@ -1411,11 +1422,10 @@ architecture rtl of Computer_System is
 	signal rst_controller_reset_out_reset                                       : std_logic;                      -- rst_controller:reset_out -> [AV_Config:reset, F2H_Mem_Window_00000000:reset, F2H_Mem_Window_FF600000:reset, F2H_Mem_Window_FF800000:reset, Onchip_SRAM:reset, Pixel_DMA_Addr_Translation:reset, mm_interconnect_0:F2H_Mem_Window_00000000_reset_reset_bridge_in_reset_reset, mm_interconnect_1:SDRAM_reset_reset_bridge_in_reset_reset, mm_interconnect_1:VGA_Subsystem_sys_reset_reset_bridge_in_reset_reset, mm_interconnect_2:AV_Config_reset_reset_bridge_in_reset_reset, mm_interconnect_2:Audio_Subsystem_sys_reset_reset_bridge_in_reset_reset, mm_interconnect_3:Pixel_DMA_Addr_Translation_reset_reset_bridge_in_reset_reset, mm_interconnect_3:VGA_Subsystem_sys_reset_reset_bridge_in_reset_reset, rst_controller_reset_out_reset:in, rst_translator:in_reset]
 	signal rst_controller_reset_out_reset_req                                   : std_logic;                      -- rst_controller:reset_req -> [Onchip_SRAM:reset_req, rst_translator:reset_req_in]
 	signal arm_a9_hps_h2f_reset_reset                                           : std_logic;                      -- ARM_A9_HPS:h2f_rst_n -> arm_a9_hps_h2f_reset_reset:in
-	signal system_pll_reset_source_reset                                        : std_logic;                      -- System_PLL:reset_source_reset -> [rst_controller:reset_in1, rst_controller_001:reset_in1, rst_controller_002:reset_in1, rst_controller_003:reset_in0]
+	signal system_pll_reset_source_reset                                        : std_logic;                      -- System_PLL:reset_source_reset -> [rst_controller:reset_in1, rst_controller_001:reset_in1, rst_controller_003:reset_in1]
 	signal rst_controller_001_reset_out_reset                                   : std_logic;                      -- rst_controller_001:reset_out -> rst_controller_001_reset_out_reset:in
-	signal rst_controller_002_reset_out_reset                                   : std_logic;                      -- rst_controller_002:reset_out -> rst_controller_002_reset_out_reset:in
-	signal rst_controller_003_reset_out_reset                                   : std_logic;                      -- rst_controller_003:reset_out -> [mm_interconnect_1:new_component_0_reset_reset_bridge_in_reset_reset, new_component_0:reset]
-	signal rst_controller_004_reset_out_reset                                   : std_logic;                      -- rst_controller_004:reset_out -> [mm_interconnect_0:ARM_A9_HPS_f2h_axi_slave_agent_reset_sink_reset_bridge_in_reset_reset, mm_interconnect_1:ARM_A9_HPS_h2f_axi_master_agent_clk_reset_reset_bridge_in_reset_reset, mm_interconnect_2:ARM_A9_HPS_h2f_lw_axi_master_agent_clk_reset_reset_bridge_in_reset_reset]
+	signal rst_controller_002_reset_out_reset                                   : std_logic;                      -- rst_controller_002:reset_out -> [Filter_0:resetn, mm_interconnect_0:ARM_A9_HPS_f2h_axi_slave_agent_reset_sink_reset_bridge_in_reset_reset, mm_interconnect_1:Filter_0_reset_reset_bridge_in_reset_reset, mm_interconnect_2:Filter_0_reset_reset_bridge_in_reset_reset]
+	signal rst_controller_003_reset_out_reset                                   : std_logic;                      -- rst_controller_003:reset_out -> rst_controller_003_reset_out_reset:in
 	signal mm_interconnect_1_sdram_s1_read_ports_inv                            : std_logic;                      -- mm_interconnect_1_sdram_s1_read:inv -> SDRAM:az_rd_n
 	signal mm_interconnect_1_sdram_s1_byteenable_ports_inv                      : std_logic_vector(1 downto 0);   -- mm_interconnect_1_sdram_s1_byteenable:inv -> SDRAM:az_be_n
 	signal mm_interconnect_1_sdram_s1_write_ports_inv                           : std_logic;                      -- mm_interconnect_1_sdram_s1_write:inv -> SDRAM:az_wr_n
@@ -1423,9 +1433,9 @@ architecture rtl of Computer_System is
 	signal mm_interconnect_2_hex3_hex0_s1_write_ports_inv                       : std_logic;                      -- mm_interconnect_2_hex3_hex0_s1_write:inv -> HEX3_HEX0:write_n
 	signal mm_interconnect_2_pushbuttons_s1_write_ports_inv                     : std_logic;                      -- mm_interconnect_2_pushbuttons_s1_write:inv -> Pushbuttons:write_n
 	signal rst_controller_reset_out_reset_ports_inv                             : std_logic;                      -- rst_controller_reset_out_reset:inv -> [HEX3_HEX0:reset_n, LEDs:reset_n, Pushbuttons:reset_n, SDRAM:reset_n, Slider_Switches:reset_n, SysID:reset_n]
-	signal arm_a9_hps_h2f_reset_reset_ports_inv                                 : std_logic;                      -- arm_a9_hps_h2f_reset_reset:inv -> [rst_controller:reset_in0, rst_controller_001:reset_in0, rst_controller_002:reset_in0, rst_controller_004:reset_in0]
+	signal arm_a9_hps_h2f_reset_reset_ports_inv                                 : std_logic;                      -- arm_a9_hps_h2f_reset_reset:inv -> [rst_controller:reset_in0, rst_controller_001:reset_in0, rst_controller_002:reset_in0, rst_controller_003:reset_in0]
 	signal rst_controller_001_reset_out_reset_ports_inv                         : std_logic;                      -- rst_controller_001_reset_out_reset:inv -> Audio_Subsystem:sys_reset_reset_n
-	signal rst_controller_002_reset_out_reset_ports_inv                         : std_logic;                      -- rst_controller_002_reset_out_reset:inv -> VGA_Subsystem:sys_reset_reset_n
+	signal rst_controller_003_reset_out_reset_ports_inv                         : std_logic;                      -- rst_controller_003_reset_out_reset:inv -> VGA_Subsystem:sys_reset_reset_n
 
 begin
 
@@ -1785,6 +1795,20 @@ begin
 			avs_cntl_byteenable  => "00000000"                                                          --     (terminated)
 		);
 
+	filter_0 : component FIlter_interface
+		port map (
+			clock        => system_pll_sys_clk_clk,                  -- clock.clk
+			resetn       => rst_controller_002_reset_out_reset,      -- reset.reset
+			writedata_hw => mm_interconnect_1_filter_0_hw_writedata, --    hw.writedata
+			readdata_hw  => mm_interconnect_1_filter_0_hw_readdata,  --      .readdata
+			readn_hw     => mm_interconnect_1_filter_0_hw_read,      --      .read
+			writen_hw    => mm_interconnect_1_filter_0_hw_write,     --      .write
+			writedata_lw => mm_interconnect_2_filter_0_lw_writedata, --    lw.writedata
+			readdata_lw  => mm_interconnect_2_filter_0_lw_readdata,  --      .readdata
+			readn_lw     => mm_interconnect_2_filter_0_lw_read,      --      .read
+			writen_lw    => mm_interconnect_2_filter_0_lw_write      --      .write
+		);
+
 	hex3_hex0 : component Computer_System_HEX3_HEX0
 		port map (
 			clk        => system_pll_sys_clk_clk,                         --                 clk.clk
@@ -1947,7 +1971,7 @@ begin
 			pixel_dma_master_read                => vga_subsystem_pixel_dma_master_read,                                  --                          .read
 			pixel_dma_master_readdata            => vga_subsystem_pixel_dma_master_readdata,                              --                          .readdata
 			sys_clk_clk                          => system_pll_sys_clk_clk,                                               --                   sys_clk.clk
-			sys_reset_reset_n                    => rst_controller_002_reset_out_reset_ports_inv,                         --                 sys_reset.reset_n
+			sys_reset_reset_n                    => rst_controller_003_reset_out_reset_ports_inv,                         --                 sys_reset.reset_n
 			vga_CLK                              => vga_CLK,                                                              --                       vga.CLK
 			vga_HS                               => vga_HS,                                                               --                          .HS
 			vga_VS                               => vga_VS,                                                               --                          .VS
@@ -1958,16 +1982,6 @@ begin
 			vga_B                                => vga_B,                                                                --                          .B
 			vga_pll_ref_clk_clk                  => vga_pll_ref_clk_clk,                                                  --           vga_pll_ref_clk.clk
 			vga_pll_ref_reset_reset              => vga_pll_ref_reset_reset                                               --         vga_pll_ref_reset.reset
-		);
-
-	new_component_0 : component reg32_avalon_interface
-		port map (
-			readn     => mm_interconnect_1_new_component_0_avalon_slave_0_read,      -- avalon_slave_0.read
-			writen    => mm_interconnect_1_new_component_0_avalon_slave_0_write,     --               .write
-			writedata => mm_interconnect_1_new_component_0_avalon_slave_0_writedata, --               .writedata
-			readdata  => mm_interconnect_1_new_component_0_avalon_slave_0_readdata,  --               .readdata
-			clock     => system_pll_sys_clk_clk,                                     --          clock.clk
-			reset     => rst_controller_003_reset_out_reset                          --          reset.reset
 		);
 
 	mm_interconnect_0 : component Computer_System_mm_interconnect_0
@@ -2011,7 +2025,7 @@ begin
 			ARM_A9_HPS_f2h_axi_slave_rvalid                                       => mm_interconnect_0_arm_a9_hps_f2h_axi_slave_rvalid,     --                                                                .rvalid
 			ARM_A9_HPS_f2h_axi_slave_rready                                       => mm_interconnect_0_arm_a9_hps_f2h_axi_slave_rready,     --                                                                .rready
 			System_PLL_sys_clk_clk                                                => system_pll_sys_clk_clk,                                --                                              System_PLL_sys_clk.clk
-			ARM_A9_HPS_f2h_axi_slave_agent_reset_sink_reset_bridge_in_reset_reset => rst_controller_004_reset_out_reset,                    -- ARM_A9_HPS_f2h_axi_slave_agent_reset_sink_reset_bridge_in_reset.reset
+			ARM_A9_HPS_f2h_axi_slave_agent_reset_sink_reset_bridge_in_reset_reset => rst_controller_002_reset_out_reset,                    -- ARM_A9_HPS_f2h_axi_slave_agent_reset_sink_reset_bridge_in_reset.reset
 			F2H_Mem_Window_00000000_reset_reset_bridge_in_reset_reset             => rst_controller_reset_out_reset,                        --             F2H_Mem_Window_00000000_reset_reset_bridge_in_reset.reset
 			F2H_Mem_Window_00000000_expanded_master_address                       => f2h_mem_window_00000000_expanded_master_address,       --                         F2H_Mem_Window_00000000_expanded_master.address
 			F2H_Mem_Window_00000000_expanded_master_waitrequest                   => f2h_mem_window_00000000_expanded_master_waitrequest,   --                                                                .waitrequest
@@ -2044,178 +2058,181 @@ begin
 
 	mm_interconnect_1 : component Computer_System_mm_interconnect_1
 		port map (
-			ARM_A9_HPS_h2f_axi_master_awid                                        => arm_a9_hps_h2f_axi_master_awid,                                --                                       ARM_A9_HPS_h2f_axi_master.awid
-			ARM_A9_HPS_h2f_axi_master_awaddr                                      => arm_a9_hps_h2f_axi_master_awaddr,                              --                                                                .awaddr
-			ARM_A9_HPS_h2f_axi_master_awlen                                       => arm_a9_hps_h2f_axi_master_awlen,                               --                                                                .awlen
-			ARM_A9_HPS_h2f_axi_master_awsize                                      => arm_a9_hps_h2f_axi_master_awsize,                              --                                                                .awsize
-			ARM_A9_HPS_h2f_axi_master_awburst                                     => arm_a9_hps_h2f_axi_master_awburst,                             --                                                                .awburst
-			ARM_A9_HPS_h2f_axi_master_awlock                                      => arm_a9_hps_h2f_axi_master_awlock,                              --                                                                .awlock
-			ARM_A9_HPS_h2f_axi_master_awcache                                     => arm_a9_hps_h2f_axi_master_awcache,                             --                                                                .awcache
-			ARM_A9_HPS_h2f_axi_master_awprot                                      => arm_a9_hps_h2f_axi_master_awprot,                              --                                                                .awprot
-			ARM_A9_HPS_h2f_axi_master_awvalid                                     => arm_a9_hps_h2f_axi_master_awvalid,                             --                                                                .awvalid
-			ARM_A9_HPS_h2f_axi_master_awready                                     => arm_a9_hps_h2f_axi_master_awready,                             --                                                                .awready
-			ARM_A9_HPS_h2f_axi_master_wid                                         => arm_a9_hps_h2f_axi_master_wid,                                 --                                                                .wid
-			ARM_A9_HPS_h2f_axi_master_wdata                                       => arm_a9_hps_h2f_axi_master_wdata,                               --                                                                .wdata
-			ARM_A9_HPS_h2f_axi_master_wstrb                                       => arm_a9_hps_h2f_axi_master_wstrb,                               --                                                                .wstrb
-			ARM_A9_HPS_h2f_axi_master_wlast                                       => arm_a9_hps_h2f_axi_master_wlast,                               --                                                                .wlast
-			ARM_A9_HPS_h2f_axi_master_wvalid                                      => arm_a9_hps_h2f_axi_master_wvalid,                              --                                                                .wvalid
-			ARM_A9_HPS_h2f_axi_master_wready                                      => arm_a9_hps_h2f_axi_master_wready,                              --                                                                .wready
-			ARM_A9_HPS_h2f_axi_master_bid                                         => arm_a9_hps_h2f_axi_master_bid,                                 --                                                                .bid
-			ARM_A9_HPS_h2f_axi_master_bresp                                       => arm_a9_hps_h2f_axi_master_bresp,                               --                                                                .bresp
-			ARM_A9_HPS_h2f_axi_master_bvalid                                      => arm_a9_hps_h2f_axi_master_bvalid,                              --                                                                .bvalid
-			ARM_A9_HPS_h2f_axi_master_bready                                      => arm_a9_hps_h2f_axi_master_bready,                              --                                                                .bready
-			ARM_A9_HPS_h2f_axi_master_arid                                        => arm_a9_hps_h2f_axi_master_arid,                                --                                                                .arid
-			ARM_A9_HPS_h2f_axi_master_araddr                                      => arm_a9_hps_h2f_axi_master_araddr,                              --                                                                .araddr
-			ARM_A9_HPS_h2f_axi_master_arlen                                       => arm_a9_hps_h2f_axi_master_arlen,                               --                                                                .arlen
-			ARM_A9_HPS_h2f_axi_master_arsize                                      => arm_a9_hps_h2f_axi_master_arsize,                              --                                                                .arsize
-			ARM_A9_HPS_h2f_axi_master_arburst                                     => arm_a9_hps_h2f_axi_master_arburst,                             --                                                                .arburst
-			ARM_A9_HPS_h2f_axi_master_arlock                                      => arm_a9_hps_h2f_axi_master_arlock,                              --                                                                .arlock
-			ARM_A9_HPS_h2f_axi_master_arcache                                     => arm_a9_hps_h2f_axi_master_arcache,                             --                                                                .arcache
-			ARM_A9_HPS_h2f_axi_master_arprot                                      => arm_a9_hps_h2f_axi_master_arprot,                              --                                                                .arprot
-			ARM_A9_HPS_h2f_axi_master_arvalid                                     => arm_a9_hps_h2f_axi_master_arvalid,                             --                                                                .arvalid
-			ARM_A9_HPS_h2f_axi_master_arready                                     => arm_a9_hps_h2f_axi_master_arready,                             --                                                                .arready
-			ARM_A9_HPS_h2f_axi_master_rid                                         => arm_a9_hps_h2f_axi_master_rid,                                 --                                                                .rid
-			ARM_A9_HPS_h2f_axi_master_rdata                                       => arm_a9_hps_h2f_axi_master_rdata,                               --                                                                .rdata
-			ARM_A9_HPS_h2f_axi_master_rresp                                       => arm_a9_hps_h2f_axi_master_rresp,                               --                                                                .rresp
-			ARM_A9_HPS_h2f_axi_master_rlast                                       => arm_a9_hps_h2f_axi_master_rlast,                               --                                                                .rlast
-			ARM_A9_HPS_h2f_axi_master_rvalid                                      => arm_a9_hps_h2f_axi_master_rvalid,                              --                                                                .rvalid
-			ARM_A9_HPS_h2f_axi_master_rready                                      => arm_a9_hps_h2f_axi_master_rready,                              --                                                                .rready
-			System_PLL_sys_clk_clk                                                => system_pll_sys_clk_clk,                                        --                                              System_PLL_sys_clk.clk
-			ARM_A9_HPS_h2f_axi_master_agent_clk_reset_reset_bridge_in_reset_reset => rst_controller_004_reset_out_reset,                            -- ARM_A9_HPS_h2f_axi_master_agent_clk_reset_reset_bridge_in_reset.reset
-			new_component_0_reset_reset_bridge_in_reset_reset                     => rst_controller_003_reset_out_reset,                            --                     new_component_0_reset_reset_bridge_in_reset.reset
-			SDRAM_reset_reset_bridge_in_reset_reset                               => rst_controller_reset_out_reset,                                --                               SDRAM_reset_reset_bridge_in_reset.reset
-			VGA_Subsystem_sys_reset_reset_bridge_in_reset_reset                   => rst_controller_reset_out_reset,                                --                   VGA_Subsystem_sys_reset_reset_bridge_in_reset.reset
-			VGA_Subsystem_pixel_dma_master_address                                => vga_subsystem_pixel_dma_master_address,                        --                                  VGA_Subsystem_pixel_dma_master.address
-			VGA_Subsystem_pixel_dma_master_waitrequest                            => vga_subsystem_pixel_dma_master_waitrequest,                    --                                                                .waitrequest
-			VGA_Subsystem_pixel_dma_master_read                                   => vga_subsystem_pixel_dma_master_read,                           --                                                                .read
-			VGA_Subsystem_pixel_dma_master_readdata                               => vga_subsystem_pixel_dma_master_readdata,                       --                                                                .readdata
-			VGA_Subsystem_pixel_dma_master_readdatavalid                          => vga_subsystem_pixel_dma_master_readdatavalid,                  --                                                                .readdatavalid
-			VGA_Subsystem_pixel_dma_master_lock                                   => vga_subsystem_pixel_dma_master_lock,                           --                                                                .lock
-			new_component_0_avalon_slave_0_write                                  => mm_interconnect_1_new_component_0_avalon_slave_0_write,        --                                  new_component_0_avalon_slave_0.write
-			new_component_0_avalon_slave_0_read                                   => mm_interconnect_1_new_component_0_avalon_slave_0_read,         --                                                                .read
-			new_component_0_avalon_slave_0_readdata                               => mm_interconnect_1_new_component_0_avalon_slave_0_readdata,     --                                                                .readdata
-			new_component_0_avalon_slave_0_writedata                              => mm_interconnect_1_new_component_0_avalon_slave_0_writedata,    --                                                                .writedata
-			Onchip_SRAM_s1_address                                                => mm_interconnect_1_onchip_sram_s1_address,                      --                                                  Onchip_SRAM_s1.address
-			Onchip_SRAM_s1_write                                                  => mm_interconnect_1_onchip_sram_s1_write,                        --                                                                .write
-			Onchip_SRAM_s1_readdata                                               => mm_interconnect_1_onchip_sram_s1_readdata,                     --                                                                .readdata
-			Onchip_SRAM_s1_writedata                                              => mm_interconnect_1_onchip_sram_s1_writedata,                    --                                                                .writedata
-			Onchip_SRAM_s1_byteenable                                             => mm_interconnect_1_onchip_sram_s1_byteenable,                   --                                                                .byteenable
-			Onchip_SRAM_s1_chipselect                                             => mm_interconnect_1_onchip_sram_s1_chipselect,                   --                                                                .chipselect
-			Onchip_SRAM_s1_clken                                                  => mm_interconnect_1_onchip_sram_s1_clken,                        --                                                                .clken
-			Onchip_SRAM_s2_address                                                => mm_interconnect_1_onchip_sram_s2_address,                      --                                                  Onchip_SRAM_s2.address
-			Onchip_SRAM_s2_write                                                  => mm_interconnect_1_onchip_sram_s2_write,                        --                                                                .write
-			Onchip_SRAM_s2_readdata                                               => mm_interconnect_1_onchip_sram_s2_readdata,                     --                                                                .readdata
-			Onchip_SRAM_s2_writedata                                              => mm_interconnect_1_onchip_sram_s2_writedata,                    --                                                                .writedata
-			Onchip_SRAM_s2_byteenable                                             => mm_interconnect_1_onchip_sram_s2_byteenable,                   --                                                                .byteenable
-			Onchip_SRAM_s2_chipselect                                             => mm_interconnect_1_onchip_sram_s2_chipselect,                   --                                                                .chipselect
-			Onchip_SRAM_s2_clken                                                  => mm_interconnect_1_onchip_sram_s2_clken,                        --                                                                .clken
-			SDRAM_s1_address                                                      => mm_interconnect_1_sdram_s1_address,                            --                                                        SDRAM_s1.address
-			SDRAM_s1_write                                                        => mm_interconnect_1_sdram_s1_write,                              --                                                                .write
-			SDRAM_s1_read                                                         => mm_interconnect_1_sdram_s1_read,                               --                                                                .read
-			SDRAM_s1_readdata                                                     => mm_interconnect_1_sdram_s1_readdata,                           --                                                                .readdata
-			SDRAM_s1_writedata                                                    => mm_interconnect_1_sdram_s1_writedata,                          --                                                                .writedata
-			SDRAM_s1_byteenable                                                   => mm_interconnect_1_sdram_s1_byteenable,                         --                                                                .byteenable
-			SDRAM_s1_readdatavalid                                                => mm_interconnect_1_sdram_s1_readdatavalid,                      --                                                                .readdatavalid
-			SDRAM_s1_waitrequest                                                  => mm_interconnect_1_sdram_s1_waitrequest,                        --                                                                .waitrequest
-			SDRAM_s1_chipselect                                                   => mm_interconnect_1_sdram_s1_chipselect,                         --                                                                .chipselect
-			VGA_Subsystem_char_buffer_slave_address                               => mm_interconnect_1_vga_subsystem_char_buffer_slave_address,     --                                 VGA_Subsystem_char_buffer_slave.address
-			VGA_Subsystem_char_buffer_slave_write                                 => mm_interconnect_1_vga_subsystem_char_buffer_slave_write,       --                                                                .write
-			VGA_Subsystem_char_buffer_slave_read                                  => mm_interconnect_1_vga_subsystem_char_buffer_slave_read,        --                                                                .read
-			VGA_Subsystem_char_buffer_slave_readdata                              => mm_interconnect_1_vga_subsystem_char_buffer_slave_readdata,    --                                                                .readdata
-			VGA_Subsystem_char_buffer_slave_writedata                             => mm_interconnect_1_vga_subsystem_char_buffer_slave_writedata,   --                                                                .writedata
-			VGA_Subsystem_char_buffer_slave_byteenable                            => mm_interconnect_1_vga_subsystem_char_buffer_slave_byteenable,  --                                                                .byteenable
-			VGA_Subsystem_char_buffer_slave_waitrequest                           => mm_interconnect_1_vga_subsystem_char_buffer_slave_waitrequest, --                                                                .waitrequest
-			VGA_Subsystem_char_buffer_slave_chipselect                            => mm_interconnect_1_vga_subsystem_char_buffer_slave_chipselect   --                                                                .chipselect
+			ARM_A9_HPS_h2f_axi_master_awid                      => arm_a9_hps_h2f_axi_master_awid,                                --                     ARM_A9_HPS_h2f_axi_master.awid
+			ARM_A9_HPS_h2f_axi_master_awaddr                    => arm_a9_hps_h2f_axi_master_awaddr,                              --                                              .awaddr
+			ARM_A9_HPS_h2f_axi_master_awlen                     => arm_a9_hps_h2f_axi_master_awlen,                               --                                              .awlen
+			ARM_A9_HPS_h2f_axi_master_awsize                    => arm_a9_hps_h2f_axi_master_awsize,                              --                                              .awsize
+			ARM_A9_HPS_h2f_axi_master_awburst                   => arm_a9_hps_h2f_axi_master_awburst,                             --                                              .awburst
+			ARM_A9_HPS_h2f_axi_master_awlock                    => arm_a9_hps_h2f_axi_master_awlock,                              --                                              .awlock
+			ARM_A9_HPS_h2f_axi_master_awcache                   => arm_a9_hps_h2f_axi_master_awcache,                             --                                              .awcache
+			ARM_A9_HPS_h2f_axi_master_awprot                    => arm_a9_hps_h2f_axi_master_awprot,                              --                                              .awprot
+			ARM_A9_HPS_h2f_axi_master_awvalid                   => arm_a9_hps_h2f_axi_master_awvalid,                             --                                              .awvalid
+			ARM_A9_HPS_h2f_axi_master_awready                   => arm_a9_hps_h2f_axi_master_awready,                             --                                              .awready
+			ARM_A9_HPS_h2f_axi_master_wid                       => arm_a9_hps_h2f_axi_master_wid,                                 --                                              .wid
+			ARM_A9_HPS_h2f_axi_master_wdata                     => arm_a9_hps_h2f_axi_master_wdata,                               --                                              .wdata
+			ARM_A9_HPS_h2f_axi_master_wstrb                     => arm_a9_hps_h2f_axi_master_wstrb,                               --                                              .wstrb
+			ARM_A9_HPS_h2f_axi_master_wlast                     => arm_a9_hps_h2f_axi_master_wlast,                               --                                              .wlast
+			ARM_A9_HPS_h2f_axi_master_wvalid                    => arm_a9_hps_h2f_axi_master_wvalid,                              --                                              .wvalid
+			ARM_A9_HPS_h2f_axi_master_wready                    => arm_a9_hps_h2f_axi_master_wready,                              --                                              .wready
+			ARM_A9_HPS_h2f_axi_master_bid                       => arm_a9_hps_h2f_axi_master_bid,                                 --                                              .bid
+			ARM_A9_HPS_h2f_axi_master_bresp                     => arm_a9_hps_h2f_axi_master_bresp,                               --                                              .bresp
+			ARM_A9_HPS_h2f_axi_master_bvalid                    => arm_a9_hps_h2f_axi_master_bvalid,                              --                                              .bvalid
+			ARM_A9_HPS_h2f_axi_master_bready                    => arm_a9_hps_h2f_axi_master_bready,                              --                                              .bready
+			ARM_A9_HPS_h2f_axi_master_arid                      => arm_a9_hps_h2f_axi_master_arid,                                --                                              .arid
+			ARM_A9_HPS_h2f_axi_master_araddr                    => arm_a9_hps_h2f_axi_master_araddr,                              --                                              .araddr
+			ARM_A9_HPS_h2f_axi_master_arlen                     => arm_a9_hps_h2f_axi_master_arlen,                               --                                              .arlen
+			ARM_A9_HPS_h2f_axi_master_arsize                    => arm_a9_hps_h2f_axi_master_arsize,                              --                                              .arsize
+			ARM_A9_HPS_h2f_axi_master_arburst                   => arm_a9_hps_h2f_axi_master_arburst,                             --                                              .arburst
+			ARM_A9_HPS_h2f_axi_master_arlock                    => arm_a9_hps_h2f_axi_master_arlock,                              --                                              .arlock
+			ARM_A9_HPS_h2f_axi_master_arcache                   => arm_a9_hps_h2f_axi_master_arcache,                             --                                              .arcache
+			ARM_A9_HPS_h2f_axi_master_arprot                    => arm_a9_hps_h2f_axi_master_arprot,                              --                                              .arprot
+			ARM_A9_HPS_h2f_axi_master_arvalid                   => arm_a9_hps_h2f_axi_master_arvalid,                             --                                              .arvalid
+			ARM_A9_HPS_h2f_axi_master_arready                   => arm_a9_hps_h2f_axi_master_arready,                             --                                              .arready
+			ARM_A9_HPS_h2f_axi_master_rid                       => arm_a9_hps_h2f_axi_master_rid,                                 --                                              .rid
+			ARM_A9_HPS_h2f_axi_master_rdata                     => arm_a9_hps_h2f_axi_master_rdata,                               --                                              .rdata
+			ARM_A9_HPS_h2f_axi_master_rresp                     => arm_a9_hps_h2f_axi_master_rresp,                               --                                              .rresp
+			ARM_A9_HPS_h2f_axi_master_rlast                     => arm_a9_hps_h2f_axi_master_rlast,                               --                                              .rlast
+			ARM_A9_HPS_h2f_axi_master_rvalid                    => arm_a9_hps_h2f_axi_master_rvalid,                              --                                              .rvalid
+			ARM_A9_HPS_h2f_axi_master_rready                    => arm_a9_hps_h2f_axi_master_rready,                              --                                              .rready
+			System_PLL_sys_clk_clk                              => system_pll_sys_clk_clk,                                        --                            System_PLL_sys_clk.clk
+			Filter_0_reset_reset_bridge_in_reset_reset          => rst_controller_002_reset_out_reset,                            --          Filter_0_reset_reset_bridge_in_reset.reset
+			SDRAM_reset_reset_bridge_in_reset_reset             => rst_controller_reset_out_reset,                                --             SDRAM_reset_reset_bridge_in_reset.reset
+			VGA_Subsystem_sys_reset_reset_bridge_in_reset_reset => rst_controller_reset_out_reset,                                -- VGA_Subsystem_sys_reset_reset_bridge_in_reset.reset
+			VGA_Subsystem_pixel_dma_master_address              => vga_subsystem_pixel_dma_master_address,                        --                VGA_Subsystem_pixel_dma_master.address
+			VGA_Subsystem_pixel_dma_master_waitrequest          => vga_subsystem_pixel_dma_master_waitrequest,                    --                                              .waitrequest
+			VGA_Subsystem_pixel_dma_master_read                 => vga_subsystem_pixel_dma_master_read,                           --                                              .read
+			VGA_Subsystem_pixel_dma_master_readdata             => vga_subsystem_pixel_dma_master_readdata,                       --                                              .readdata
+			VGA_Subsystem_pixel_dma_master_readdatavalid        => vga_subsystem_pixel_dma_master_readdatavalid,                  --                                              .readdatavalid
+			VGA_Subsystem_pixel_dma_master_lock                 => vga_subsystem_pixel_dma_master_lock,                           --                                              .lock
+			Filter_0_hw_write                                   => mm_interconnect_1_filter_0_hw_write,                           --                                   Filter_0_hw.write
+			Filter_0_hw_read                                    => mm_interconnect_1_filter_0_hw_read,                            --                                              .read
+			Filter_0_hw_readdata                                => mm_interconnect_1_filter_0_hw_readdata,                        --                                              .readdata
+			Filter_0_hw_writedata                               => mm_interconnect_1_filter_0_hw_writedata,                       --                                              .writedata
+			Onchip_SRAM_s1_address                              => mm_interconnect_1_onchip_sram_s1_address,                      --                                Onchip_SRAM_s1.address
+			Onchip_SRAM_s1_write                                => mm_interconnect_1_onchip_sram_s1_write,                        --                                              .write
+			Onchip_SRAM_s1_readdata                             => mm_interconnect_1_onchip_sram_s1_readdata,                     --                                              .readdata
+			Onchip_SRAM_s1_writedata                            => mm_interconnect_1_onchip_sram_s1_writedata,                    --                                              .writedata
+			Onchip_SRAM_s1_byteenable                           => mm_interconnect_1_onchip_sram_s1_byteenable,                   --                                              .byteenable
+			Onchip_SRAM_s1_chipselect                           => mm_interconnect_1_onchip_sram_s1_chipselect,                   --                                              .chipselect
+			Onchip_SRAM_s1_clken                                => mm_interconnect_1_onchip_sram_s1_clken,                        --                                              .clken
+			Onchip_SRAM_s2_address                              => mm_interconnect_1_onchip_sram_s2_address,                      --                                Onchip_SRAM_s2.address
+			Onchip_SRAM_s2_write                                => mm_interconnect_1_onchip_sram_s2_write,                        --                                              .write
+			Onchip_SRAM_s2_readdata                             => mm_interconnect_1_onchip_sram_s2_readdata,                     --                                              .readdata
+			Onchip_SRAM_s2_writedata                            => mm_interconnect_1_onchip_sram_s2_writedata,                    --                                              .writedata
+			Onchip_SRAM_s2_byteenable                           => mm_interconnect_1_onchip_sram_s2_byteenable,                   --                                              .byteenable
+			Onchip_SRAM_s2_chipselect                           => mm_interconnect_1_onchip_sram_s2_chipselect,                   --                                              .chipselect
+			Onchip_SRAM_s2_clken                                => mm_interconnect_1_onchip_sram_s2_clken,                        --                                              .clken
+			SDRAM_s1_address                                    => mm_interconnect_1_sdram_s1_address,                            --                                      SDRAM_s1.address
+			SDRAM_s1_write                                      => mm_interconnect_1_sdram_s1_write,                              --                                              .write
+			SDRAM_s1_read                                       => mm_interconnect_1_sdram_s1_read,                               --                                              .read
+			SDRAM_s1_readdata                                   => mm_interconnect_1_sdram_s1_readdata,                           --                                              .readdata
+			SDRAM_s1_writedata                                  => mm_interconnect_1_sdram_s1_writedata,                          --                                              .writedata
+			SDRAM_s1_byteenable                                 => mm_interconnect_1_sdram_s1_byteenable,                         --                                              .byteenable
+			SDRAM_s1_readdatavalid                              => mm_interconnect_1_sdram_s1_readdatavalid,                      --                                              .readdatavalid
+			SDRAM_s1_waitrequest                                => mm_interconnect_1_sdram_s1_waitrequest,                        --                                              .waitrequest
+			SDRAM_s1_chipselect                                 => mm_interconnect_1_sdram_s1_chipselect,                         --                                              .chipselect
+			VGA_Subsystem_char_buffer_slave_address             => mm_interconnect_1_vga_subsystem_char_buffer_slave_address,     --               VGA_Subsystem_char_buffer_slave.address
+			VGA_Subsystem_char_buffer_slave_write               => mm_interconnect_1_vga_subsystem_char_buffer_slave_write,       --                                              .write
+			VGA_Subsystem_char_buffer_slave_read                => mm_interconnect_1_vga_subsystem_char_buffer_slave_read,        --                                              .read
+			VGA_Subsystem_char_buffer_slave_readdata            => mm_interconnect_1_vga_subsystem_char_buffer_slave_readdata,    --                                              .readdata
+			VGA_Subsystem_char_buffer_slave_writedata           => mm_interconnect_1_vga_subsystem_char_buffer_slave_writedata,   --                                              .writedata
+			VGA_Subsystem_char_buffer_slave_byteenable          => mm_interconnect_1_vga_subsystem_char_buffer_slave_byteenable,  --                                              .byteenable
+			VGA_Subsystem_char_buffer_slave_waitrequest         => mm_interconnect_1_vga_subsystem_char_buffer_slave_waitrequest, --                                              .waitrequest
+			VGA_Subsystem_char_buffer_slave_chipselect          => mm_interconnect_1_vga_subsystem_char_buffer_slave_chipselect   --                                              .chipselect
 		);
 
 	mm_interconnect_2 : component Computer_System_mm_interconnect_2
 		port map (
-			ARM_A9_HPS_h2f_lw_axi_master_awid                                        => arm_a9_hps_h2f_lw_axi_master_awid,                                    --                                       ARM_A9_HPS_h2f_lw_axi_master.awid
-			ARM_A9_HPS_h2f_lw_axi_master_awaddr                                      => arm_a9_hps_h2f_lw_axi_master_awaddr,                                  --                                                                   .awaddr
-			ARM_A9_HPS_h2f_lw_axi_master_awlen                                       => arm_a9_hps_h2f_lw_axi_master_awlen,                                   --                                                                   .awlen
-			ARM_A9_HPS_h2f_lw_axi_master_awsize                                      => arm_a9_hps_h2f_lw_axi_master_awsize,                                  --                                                                   .awsize
-			ARM_A9_HPS_h2f_lw_axi_master_awburst                                     => arm_a9_hps_h2f_lw_axi_master_awburst,                                 --                                                                   .awburst
-			ARM_A9_HPS_h2f_lw_axi_master_awlock                                      => arm_a9_hps_h2f_lw_axi_master_awlock,                                  --                                                                   .awlock
-			ARM_A9_HPS_h2f_lw_axi_master_awcache                                     => arm_a9_hps_h2f_lw_axi_master_awcache,                                 --                                                                   .awcache
-			ARM_A9_HPS_h2f_lw_axi_master_awprot                                      => arm_a9_hps_h2f_lw_axi_master_awprot,                                  --                                                                   .awprot
-			ARM_A9_HPS_h2f_lw_axi_master_awvalid                                     => arm_a9_hps_h2f_lw_axi_master_awvalid,                                 --                                                                   .awvalid
-			ARM_A9_HPS_h2f_lw_axi_master_awready                                     => arm_a9_hps_h2f_lw_axi_master_awready,                                 --                                                                   .awready
-			ARM_A9_HPS_h2f_lw_axi_master_wid                                         => arm_a9_hps_h2f_lw_axi_master_wid,                                     --                                                                   .wid
-			ARM_A9_HPS_h2f_lw_axi_master_wdata                                       => arm_a9_hps_h2f_lw_axi_master_wdata,                                   --                                                                   .wdata
-			ARM_A9_HPS_h2f_lw_axi_master_wstrb                                       => arm_a9_hps_h2f_lw_axi_master_wstrb,                                   --                                                                   .wstrb
-			ARM_A9_HPS_h2f_lw_axi_master_wlast                                       => arm_a9_hps_h2f_lw_axi_master_wlast,                                   --                                                                   .wlast
-			ARM_A9_HPS_h2f_lw_axi_master_wvalid                                      => arm_a9_hps_h2f_lw_axi_master_wvalid,                                  --                                                                   .wvalid
-			ARM_A9_HPS_h2f_lw_axi_master_wready                                      => arm_a9_hps_h2f_lw_axi_master_wready,                                  --                                                                   .wready
-			ARM_A9_HPS_h2f_lw_axi_master_bid                                         => arm_a9_hps_h2f_lw_axi_master_bid,                                     --                                                                   .bid
-			ARM_A9_HPS_h2f_lw_axi_master_bresp                                       => arm_a9_hps_h2f_lw_axi_master_bresp,                                   --                                                                   .bresp
-			ARM_A9_HPS_h2f_lw_axi_master_bvalid                                      => arm_a9_hps_h2f_lw_axi_master_bvalid,                                  --                                                                   .bvalid
-			ARM_A9_HPS_h2f_lw_axi_master_bready                                      => arm_a9_hps_h2f_lw_axi_master_bready,                                  --                                                                   .bready
-			ARM_A9_HPS_h2f_lw_axi_master_arid                                        => arm_a9_hps_h2f_lw_axi_master_arid,                                    --                                                                   .arid
-			ARM_A9_HPS_h2f_lw_axi_master_araddr                                      => arm_a9_hps_h2f_lw_axi_master_araddr,                                  --                                                                   .araddr
-			ARM_A9_HPS_h2f_lw_axi_master_arlen                                       => arm_a9_hps_h2f_lw_axi_master_arlen,                                   --                                                                   .arlen
-			ARM_A9_HPS_h2f_lw_axi_master_arsize                                      => arm_a9_hps_h2f_lw_axi_master_arsize,                                  --                                                                   .arsize
-			ARM_A9_HPS_h2f_lw_axi_master_arburst                                     => arm_a9_hps_h2f_lw_axi_master_arburst,                                 --                                                                   .arburst
-			ARM_A9_HPS_h2f_lw_axi_master_arlock                                      => arm_a9_hps_h2f_lw_axi_master_arlock,                                  --                                                                   .arlock
-			ARM_A9_HPS_h2f_lw_axi_master_arcache                                     => arm_a9_hps_h2f_lw_axi_master_arcache,                                 --                                                                   .arcache
-			ARM_A9_HPS_h2f_lw_axi_master_arprot                                      => arm_a9_hps_h2f_lw_axi_master_arprot,                                  --                                                                   .arprot
-			ARM_A9_HPS_h2f_lw_axi_master_arvalid                                     => arm_a9_hps_h2f_lw_axi_master_arvalid,                                 --                                                                   .arvalid
-			ARM_A9_HPS_h2f_lw_axi_master_arready                                     => arm_a9_hps_h2f_lw_axi_master_arready,                                 --                                                                   .arready
-			ARM_A9_HPS_h2f_lw_axi_master_rid                                         => arm_a9_hps_h2f_lw_axi_master_rid,                                     --                                                                   .rid
-			ARM_A9_HPS_h2f_lw_axi_master_rdata                                       => arm_a9_hps_h2f_lw_axi_master_rdata,                                   --                                                                   .rdata
-			ARM_A9_HPS_h2f_lw_axi_master_rresp                                       => arm_a9_hps_h2f_lw_axi_master_rresp,                                   --                                                                   .rresp
-			ARM_A9_HPS_h2f_lw_axi_master_rlast                                       => arm_a9_hps_h2f_lw_axi_master_rlast,                                   --                                                                   .rlast
-			ARM_A9_HPS_h2f_lw_axi_master_rvalid                                      => arm_a9_hps_h2f_lw_axi_master_rvalid,                                  --                                                                   .rvalid
-			ARM_A9_HPS_h2f_lw_axi_master_rready                                      => arm_a9_hps_h2f_lw_axi_master_rready,                                  --                                                                   .rready
-			System_PLL_sys_clk_clk                                                   => system_pll_sys_clk_clk,                                               --                                                 System_PLL_sys_clk.clk
-			ARM_A9_HPS_h2f_lw_axi_master_agent_clk_reset_reset_bridge_in_reset_reset => rst_controller_004_reset_out_reset,                                   -- ARM_A9_HPS_h2f_lw_axi_master_agent_clk_reset_reset_bridge_in_reset.reset
-			Audio_Subsystem_sys_reset_reset_bridge_in_reset_reset                    => rst_controller_reset_out_reset,                                       --                    Audio_Subsystem_sys_reset_reset_bridge_in_reset.reset
-			AV_Config_reset_reset_bridge_in_reset_reset                              => rst_controller_reset_out_reset,                                       --                              AV_Config_reset_reset_bridge_in_reset.reset
-			Audio_Subsystem_audio_slave_address                                      => mm_interconnect_2_audio_subsystem_audio_slave_address,                --                                        Audio_Subsystem_audio_slave.address
-			Audio_Subsystem_audio_slave_write                                        => mm_interconnect_2_audio_subsystem_audio_slave_write,                  --                                                                   .write
-			Audio_Subsystem_audio_slave_read                                         => mm_interconnect_2_audio_subsystem_audio_slave_read,                   --                                                                   .read
-			Audio_Subsystem_audio_slave_readdata                                     => mm_interconnect_2_audio_subsystem_audio_slave_readdata,               --                                                                   .readdata
-			Audio_Subsystem_audio_slave_writedata                                    => mm_interconnect_2_audio_subsystem_audio_slave_writedata,              --                                                                   .writedata
-			Audio_Subsystem_audio_slave_chipselect                                   => mm_interconnect_2_audio_subsystem_audio_slave_chipselect,             --                                                                   .chipselect
-			AV_Config_avalon_av_config_slave_address                                 => mm_interconnect_2_av_config_avalon_av_config_slave_address,           --                                   AV_Config_avalon_av_config_slave.address
-			AV_Config_avalon_av_config_slave_write                                   => mm_interconnect_2_av_config_avalon_av_config_slave_write,             --                                                                   .write
-			AV_Config_avalon_av_config_slave_read                                    => mm_interconnect_2_av_config_avalon_av_config_slave_read,              --                                                                   .read
-			AV_Config_avalon_av_config_slave_readdata                                => mm_interconnect_2_av_config_avalon_av_config_slave_readdata,          --                                                                   .readdata
-			AV_Config_avalon_av_config_slave_writedata                               => mm_interconnect_2_av_config_avalon_av_config_slave_writedata,         --                                                                   .writedata
-			AV_Config_avalon_av_config_slave_byteenable                              => mm_interconnect_2_av_config_avalon_av_config_slave_byteenable,        --                                                                   .byteenable
-			AV_Config_avalon_av_config_slave_waitrequest                             => mm_interconnect_2_av_config_avalon_av_config_slave_waitrequest,       --                                                                   .waitrequest
-			HEX3_HEX0_s1_address                                                     => mm_interconnect_2_hex3_hex0_s1_address,                               --                                                       HEX3_HEX0_s1.address
-			HEX3_HEX0_s1_write                                                       => mm_interconnect_2_hex3_hex0_s1_write,                                 --                                                                   .write
-			HEX3_HEX0_s1_readdata                                                    => mm_interconnect_2_hex3_hex0_s1_readdata,                              --                                                                   .readdata
-			HEX3_HEX0_s1_writedata                                                   => mm_interconnect_2_hex3_hex0_s1_writedata,                             --                                                                   .writedata
-			HEX3_HEX0_s1_chipselect                                                  => mm_interconnect_2_hex3_hex0_s1_chipselect,                            --                                                                   .chipselect
-			LEDs_s1_address                                                          => mm_interconnect_2_leds_s1_address,                                    --                                                            LEDs_s1.address
-			LEDs_s1_write                                                            => mm_interconnect_2_leds_s1_write,                                      --                                                                   .write
-			LEDs_s1_readdata                                                         => mm_interconnect_2_leds_s1_readdata,                                   --                                                                   .readdata
-			LEDs_s1_writedata                                                        => mm_interconnect_2_leds_s1_writedata,                                  --                                                                   .writedata
-			LEDs_s1_chipselect                                                       => mm_interconnect_2_leds_s1_chipselect,                                 --                                                                   .chipselect
-			Pixel_DMA_Addr_Translation_slave_address                                 => mm_interconnect_2_pixel_dma_addr_translation_slave_address,           --                                   Pixel_DMA_Addr_Translation_slave.address
-			Pixel_DMA_Addr_Translation_slave_write                                   => mm_interconnect_2_pixel_dma_addr_translation_slave_write,             --                                                                   .write
-			Pixel_DMA_Addr_Translation_slave_read                                    => mm_interconnect_2_pixel_dma_addr_translation_slave_read,              --                                                                   .read
-			Pixel_DMA_Addr_Translation_slave_readdata                                => mm_interconnect_2_pixel_dma_addr_translation_slave_readdata,          --                                                                   .readdata
-			Pixel_DMA_Addr_Translation_slave_writedata                               => mm_interconnect_2_pixel_dma_addr_translation_slave_writedata,         --                                                                   .writedata
-			Pixel_DMA_Addr_Translation_slave_byteenable                              => mm_interconnect_2_pixel_dma_addr_translation_slave_byteenable,        --                                                                   .byteenable
-			Pixel_DMA_Addr_Translation_slave_waitrequest                             => mm_interconnect_2_pixel_dma_addr_translation_slave_waitrequest,       --                                                                   .waitrequest
-			Pushbuttons_s1_address                                                   => mm_interconnect_2_pushbuttons_s1_address,                             --                                                     Pushbuttons_s1.address
-			Pushbuttons_s1_write                                                     => mm_interconnect_2_pushbuttons_s1_write,                               --                                                                   .write
-			Pushbuttons_s1_readdata                                                  => mm_interconnect_2_pushbuttons_s1_readdata,                            --                                                                   .readdata
-			Pushbuttons_s1_writedata                                                 => mm_interconnect_2_pushbuttons_s1_writedata,                           --                                                                   .writedata
-			Pushbuttons_s1_chipselect                                                => mm_interconnect_2_pushbuttons_s1_chipselect,                          --                                                                   .chipselect
-			Slider_Switches_s1_address                                               => mm_interconnect_2_slider_switches_s1_address,                         --                                                 Slider_Switches_s1.address
-			Slider_Switches_s1_readdata                                              => mm_interconnect_2_slider_switches_s1_readdata,                        --                                                                   .readdata
-			SysID_control_slave_address                                              => mm_interconnect_2_sysid_control_slave_address,                        --                                                SysID_control_slave.address
-			SysID_control_slave_readdata                                             => mm_interconnect_2_sysid_control_slave_readdata,                       --                                                                   .readdata
-			VGA_Subsystem_char_buffer_control_slave_address                          => mm_interconnect_2_vga_subsystem_char_buffer_control_slave_address,    --                            VGA_Subsystem_char_buffer_control_slave.address
-			VGA_Subsystem_char_buffer_control_slave_write                            => mm_interconnect_2_vga_subsystem_char_buffer_control_slave_write,      --                                                                   .write
-			VGA_Subsystem_char_buffer_control_slave_read                             => mm_interconnect_2_vga_subsystem_char_buffer_control_slave_read,       --                                                                   .read
-			VGA_Subsystem_char_buffer_control_slave_readdata                         => mm_interconnect_2_vga_subsystem_char_buffer_control_slave_readdata,   --                                                                   .readdata
-			VGA_Subsystem_char_buffer_control_slave_writedata                        => mm_interconnect_2_vga_subsystem_char_buffer_control_slave_writedata,  --                                                                   .writedata
-			VGA_Subsystem_char_buffer_control_slave_byteenable                       => mm_interconnect_2_vga_subsystem_char_buffer_control_slave_byteenable, --                                                                   .byteenable
-			VGA_Subsystem_char_buffer_control_slave_chipselect                       => mm_interconnect_2_vga_subsystem_char_buffer_control_slave_chipselect  --                                                                   .chipselect
+			ARM_A9_HPS_h2f_lw_axi_master_awid                     => arm_a9_hps_h2f_lw_axi_master_awid,                                    --                    ARM_A9_HPS_h2f_lw_axi_master.awid
+			ARM_A9_HPS_h2f_lw_axi_master_awaddr                   => arm_a9_hps_h2f_lw_axi_master_awaddr,                                  --                                                .awaddr
+			ARM_A9_HPS_h2f_lw_axi_master_awlen                    => arm_a9_hps_h2f_lw_axi_master_awlen,                                   --                                                .awlen
+			ARM_A9_HPS_h2f_lw_axi_master_awsize                   => arm_a9_hps_h2f_lw_axi_master_awsize,                                  --                                                .awsize
+			ARM_A9_HPS_h2f_lw_axi_master_awburst                  => arm_a9_hps_h2f_lw_axi_master_awburst,                                 --                                                .awburst
+			ARM_A9_HPS_h2f_lw_axi_master_awlock                   => arm_a9_hps_h2f_lw_axi_master_awlock,                                  --                                                .awlock
+			ARM_A9_HPS_h2f_lw_axi_master_awcache                  => arm_a9_hps_h2f_lw_axi_master_awcache,                                 --                                                .awcache
+			ARM_A9_HPS_h2f_lw_axi_master_awprot                   => arm_a9_hps_h2f_lw_axi_master_awprot,                                  --                                                .awprot
+			ARM_A9_HPS_h2f_lw_axi_master_awvalid                  => arm_a9_hps_h2f_lw_axi_master_awvalid,                                 --                                                .awvalid
+			ARM_A9_HPS_h2f_lw_axi_master_awready                  => arm_a9_hps_h2f_lw_axi_master_awready,                                 --                                                .awready
+			ARM_A9_HPS_h2f_lw_axi_master_wid                      => arm_a9_hps_h2f_lw_axi_master_wid,                                     --                                                .wid
+			ARM_A9_HPS_h2f_lw_axi_master_wdata                    => arm_a9_hps_h2f_lw_axi_master_wdata,                                   --                                                .wdata
+			ARM_A9_HPS_h2f_lw_axi_master_wstrb                    => arm_a9_hps_h2f_lw_axi_master_wstrb,                                   --                                                .wstrb
+			ARM_A9_HPS_h2f_lw_axi_master_wlast                    => arm_a9_hps_h2f_lw_axi_master_wlast,                                   --                                                .wlast
+			ARM_A9_HPS_h2f_lw_axi_master_wvalid                   => arm_a9_hps_h2f_lw_axi_master_wvalid,                                  --                                                .wvalid
+			ARM_A9_HPS_h2f_lw_axi_master_wready                   => arm_a9_hps_h2f_lw_axi_master_wready,                                  --                                                .wready
+			ARM_A9_HPS_h2f_lw_axi_master_bid                      => arm_a9_hps_h2f_lw_axi_master_bid,                                     --                                                .bid
+			ARM_A9_HPS_h2f_lw_axi_master_bresp                    => arm_a9_hps_h2f_lw_axi_master_bresp,                                   --                                                .bresp
+			ARM_A9_HPS_h2f_lw_axi_master_bvalid                   => arm_a9_hps_h2f_lw_axi_master_bvalid,                                  --                                                .bvalid
+			ARM_A9_HPS_h2f_lw_axi_master_bready                   => arm_a9_hps_h2f_lw_axi_master_bready,                                  --                                                .bready
+			ARM_A9_HPS_h2f_lw_axi_master_arid                     => arm_a9_hps_h2f_lw_axi_master_arid,                                    --                                                .arid
+			ARM_A9_HPS_h2f_lw_axi_master_araddr                   => arm_a9_hps_h2f_lw_axi_master_araddr,                                  --                                                .araddr
+			ARM_A9_HPS_h2f_lw_axi_master_arlen                    => arm_a9_hps_h2f_lw_axi_master_arlen,                                   --                                                .arlen
+			ARM_A9_HPS_h2f_lw_axi_master_arsize                   => arm_a9_hps_h2f_lw_axi_master_arsize,                                  --                                                .arsize
+			ARM_A9_HPS_h2f_lw_axi_master_arburst                  => arm_a9_hps_h2f_lw_axi_master_arburst,                                 --                                                .arburst
+			ARM_A9_HPS_h2f_lw_axi_master_arlock                   => arm_a9_hps_h2f_lw_axi_master_arlock,                                  --                                                .arlock
+			ARM_A9_HPS_h2f_lw_axi_master_arcache                  => arm_a9_hps_h2f_lw_axi_master_arcache,                                 --                                                .arcache
+			ARM_A9_HPS_h2f_lw_axi_master_arprot                   => arm_a9_hps_h2f_lw_axi_master_arprot,                                  --                                                .arprot
+			ARM_A9_HPS_h2f_lw_axi_master_arvalid                  => arm_a9_hps_h2f_lw_axi_master_arvalid,                                 --                                                .arvalid
+			ARM_A9_HPS_h2f_lw_axi_master_arready                  => arm_a9_hps_h2f_lw_axi_master_arready,                                 --                                                .arready
+			ARM_A9_HPS_h2f_lw_axi_master_rid                      => arm_a9_hps_h2f_lw_axi_master_rid,                                     --                                                .rid
+			ARM_A9_HPS_h2f_lw_axi_master_rdata                    => arm_a9_hps_h2f_lw_axi_master_rdata,                                   --                                                .rdata
+			ARM_A9_HPS_h2f_lw_axi_master_rresp                    => arm_a9_hps_h2f_lw_axi_master_rresp,                                   --                                                .rresp
+			ARM_A9_HPS_h2f_lw_axi_master_rlast                    => arm_a9_hps_h2f_lw_axi_master_rlast,                                   --                                                .rlast
+			ARM_A9_HPS_h2f_lw_axi_master_rvalid                   => arm_a9_hps_h2f_lw_axi_master_rvalid,                                  --                                                .rvalid
+			ARM_A9_HPS_h2f_lw_axi_master_rready                   => arm_a9_hps_h2f_lw_axi_master_rready,                                  --                                                .rready
+			System_PLL_sys_clk_clk                                => system_pll_sys_clk_clk,                                               --                              System_PLL_sys_clk.clk
+			Audio_Subsystem_sys_reset_reset_bridge_in_reset_reset => rst_controller_reset_out_reset,                                       -- Audio_Subsystem_sys_reset_reset_bridge_in_reset.reset
+			AV_Config_reset_reset_bridge_in_reset_reset           => rst_controller_reset_out_reset,                                       --           AV_Config_reset_reset_bridge_in_reset.reset
+			Filter_0_reset_reset_bridge_in_reset_reset            => rst_controller_002_reset_out_reset,                                   --            Filter_0_reset_reset_bridge_in_reset.reset
+			Audio_Subsystem_audio_slave_address                   => mm_interconnect_2_audio_subsystem_audio_slave_address,                --                     Audio_Subsystem_audio_slave.address
+			Audio_Subsystem_audio_slave_write                     => mm_interconnect_2_audio_subsystem_audio_slave_write,                  --                                                .write
+			Audio_Subsystem_audio_slave_read                      => mm_interconnect_2_audio_subsystem_audio_slave_read,                   --                                                .read
+			Audio_Subsystem_audio_slave_readdata                  => mm_interconnect_2_audio_subsystem_audio_slave_readdata,               --                                                .readdata
+			Audio_Subsystem_audio_slave_writedata                 => mm_interconnect_2_audio_subsystem_audio_slave_writedata,              --                                                .writedata
+			Audio_Subsystem_audio_slave_chipselect                => mm_interconnect_2_audio_subsystem_audio_slave_chipselect,             --                                                .chipselect
+			AV_Config_avalon_av_config_slave_address              => mm_interconnect_2_av_config_avalon_av_config_slave_address,           --                AV_Config_avalon_av_config_slave.address
+			AV_Config_avalon_av_config_slave_write                => mm_interconnect_2_av_config_avalon_av_config_slave_write,             --                                                .write
+			AV_Config_avalon_av_config_slave_read                 => mm_interconnect_2_av_config_avalon_av_config_slave_read,              --                                                .read
+			AV_Config_avalon_av_config_slave_readdata             => mm_interconnect_2_av_config_avalon_av_config_slave_readdata,          --                                                .readdata
+			AV_Config_avalon_av_config_slave_writedata            => mm_interconnect_2_av_config_avalon_av_config_slave_writedata,         --                                                .writedata
+			AV_Config_avalon_av_config_slave_byteenable           => mm_interconnect_2_av_config_avalon_av_config_slave_byteenable,        --                                                .byteenable
+			AV_Config_avalon_av_config_slave_waitrequest          => mm_interconnect_2_av_config_avalon_av_config_slave_waitrequest,       --                                                .waitrequest
+			Filter_0_lw_write                                     => mm_interconnect_2_filter_0_lw_write,                                  --                                     Filter_0_lw.write
+			Filter_0_lw_read                                      => mm_interconnect_2_filter_0_lw_read,                                   --                                                .read
+			Filter_0_lw_readdata                                  => mm_interconnect_2_filter_0_lw_readdata,                               --                                                .readdata
+			Filter_0_lw_writedata                                 => mm_interconnect_2_filter_0_lw_writedata,                              --                                                .writedata
+			HEX3_HEX0_s1_address                                  => mm_interconnect_2_hex3_hex0_s1_address,                               --                                    HEX3_HEX0_s1.address
+			HEX3_HEX0_s1_write                                    => mm_interconnect_2_hex3_hex0_s1_write,                                 --                                                .write
+			HEX3_HEX0_s1_readdata                                 => mm_interconnect_2_hex3_hex0_s1_readdata,                              --                                                .readdata
+			HEX3_HEX0_s1_writedata                                => mm_interconnect_2_hex3_hex0_s1_writedata,                             --                                                .writedata
+			HEX3_HEX0_s1_chipselect                               => mm_interconnect_2_hex3_hex0_s1_chipselect,                            --                                                .chipselect
+			LEDs_s1_address                                       => mm_interconnect_2_leds_s1_address,                                    --                                         LEDs_s1.address
+			LEDs_s1_write                                         => mm_interconnect_2_leds_s1_write,                                      --                                                .write
+			LEDs_s1_readdata                                      => mm_interconnect_2_leds_s1_readdata,                                   --                                                .readdata
+			LEDs_s1_writedata                                     => mm_interconnect_2_leds_s1_writedata,                                  --                                                .writedata
+			LEDs_s1_chipselect                                    => mm_interconnect_2_leds_s1_chipselect,                                 --                                                .chipselect
+			Pixel_DMA_Addr_Translation_slave_address              => mm_interconnect_2_pixel_dma_addr_translation_slave_address,           --                Pixel_DMA_Addr_Translation_slave.address
+			Pixel_DMA_Addr_Translation_slave_write                => mm_interconnect_2_pixel_dma_addr_translation_slave_write,             --                                                .write
+			Pixel_DMA_Addr_Translation_slave_read                 => mm_interconnect_2_pixel_dma_addr_translation_slave_read,              --                                                .read
+			Pixel_DMA_Addr_Translation_slave_readdata             => mm_interconnect_2_pixel_dma_addr_translation_slave_readdata,          --                                                .readdata
+			Pixel_DMA_Addr_Translation_slave_writedata            => mm_interconnect_2_pixel_dma_addr_translation_slave_writedata,         --                                                .writedata
+			Pixel_DMA_Addr_Translation_slave_byteenable           => mm_interconnect_2_pixel_dma_addr_translation_slave_byteenable,        --                                                .byteenable
+			Pixel_DMA_Addr_Translation_slave_waitrequest          => mm_interconnect_2_pixel_dma_addr_translation_slave_waitrequest,       --                                                .waitrequest
+			Pushbuttons_s1_address                                => mm_interconnect_2_pushbuttons_s1_address,                             --                                  Pushbuttons_s1.address
+			Pushbuttons_s1_write                                  => mm_interconnect_2_pushbuttons_s1_write,                               --                                                .write
+			Pushbuttons_s1_readdata                               => mm_interconnect_2_pushbuttons_s1_readdata,                            --                                                .readdata
+			Pushbuttons_s1_writedata                              => mm_interconnect_2_pushbuttons_s1_writedata,                           --                                                .writedata
+			Pushbuttons_s1_chipselect                             => mm_interconnect_2_pushbuttons_s1_chipselect,                          --                                                .chipselect
+			Slider_Switches_s1_address                            => mm_interconnect_2_slider_switches_s1_address,                         --                              Slider_Switches_s1.address
+			Slider_Switches_s1_readdata                           => mm_interconnect_2_slider_switches_s1_readdata,                        --                                                .readdata
+			SysID_control_slave_address                           => mm_interconnect_2_sysid_control_slave_address,                        --                             SysID_control_slave.address
+			SysID_control_slave_readdata                          => mm_interconnect_2_sysid_control_slave_readdata,                       --                                                .readdata
+			VGA_Subsystem_char_buffer_control_slave_address       => mm_interconnect_2_vga_subsystem_char_buffer_control_slave_address,    --         VGA_Subsystem_char_buffer_control_slave.address
+			VGA_Subsystem_char_buffer_control_slave_write         => mm_interconnect_2_vga_subsystem_char_buffer_control_slave_write,      --                                                .write
+			VGA_Subsystem_char_buffer_control_slave_read          => mm_interconnect_2_vga_subsystem_char_buffer_control_slave_read,       --                                                .read
+			VGA_Subsystem_char_buffer_control_slave_readdata      => mm_interconnect_2_vga_subsystem_char_buffer_control_slave_readdata,   --                                                .readdata
+			VGA_Subsystem_char_buffer_control_slave_writedata     => mm_interconnect_2_vga_subsystem_char_buffer_control_slave_writedata,  --                                                .writedata
+			VGA_Subsystem_char_buffer_control_slave_byteenable    => mm_interconnect_2_vga_subsystem_char_buffer_control_slave_byteenable, --                                                .byteenable
+			VGA_Subsystem_char_buffer_control_slave_chipselect    => mm_interconnect_2_vga_subsystem_char_buffer_control_slave_chipselect  --                                                .chipselect
 		);
 
 	mm_interconnect_3 : component Computer_System_mm_interconnect_3
@@ -2384,10 +2401,10 @@ begin
 			reset_req_in15 => '0'                                   -- (terminated)
 		);
 
-	rst_controller_002 : component computer_system_rst_controller_001
+	rst_controller_002 : component computer_system_rst_controller_002
 		generic map (
-			NUM_RESET_INPUTS          => 2,
-			OUTPUT_RESET_SYNC_EDGES   => "none",
+			NUM_RESET_INPUTS          => 1,
+			OUTPUT_RESET_SYNC_EDGES   => "deassert",
 			SYNC_DEPTH                => 2,
 			RESET_REQUEST_PRESENT     => 0,
 			RESET_REQ_WAIT_TIME       => 1,
@@ -2413,11 +2430,11 @@ begin
 		)
 		port map (
 			reset_in0      => arm_a9_hps_h2f_reset_reset_ports_inv, -- reset_in0.reset
-			reset_in1      => system_pll_reset_source_reset,        -- reset_in1.reset
-			clk            => open,                                 --       clk.clk
+			clk            => system_pll_sys_clk_clk,               --       clk.clk
 			reset_out      => rst_controller_002_reset_out_reset,   -- reset_out.reset
 			reset_req      => open,                                 -- (terminated)
 			reset_req_in0  => '0',                                  -- (terminated)
+			reset_in1      => '0',                                  -- (terminated)
 			reset_req_in1  => '0',                                  -- (terminated)
 			reset_in2      => '0',                                  -- (terminated)
 			reset_req_in2  => '0',                                  -- (terminated)
@@ -2449,75 +2466,10 @@ begin
 			reset_req_in15 => '0'                                   -- (terminated)
 		);
 
-	rst_controller_003 : component computer_system_rst_controller_003
+	rst_controller_003 : component computer_system_rst_controller_001
 		generic map (
-			NUM_RESET_INPUTS          => 1,
-			OUTPUT_RESET_SYNC_EDGES   => "deassert",
-			SYNC_DEPTH                => 2,
-			RESET_REQUEST_PRESENT     => 0,
-			RESET_REQ_WAIT_TIME       => 1,
-			MIN_RST_ASSERTION_TIME    => 3,
-			RESET_REQ_EARLY_DSRT_TIME => 1,
-			USE_RESET_REQUEST_IN0     => 0,
-			USE_RESET_REQUEST_IN1     => 0,
-			USE_RESET_REQUEST_IN2     => 0,
-			USE_RESET_REQUEST_IN3     => 0,
-			USE_RESET_REQUEST_IN4     => 0,
-			USE_RESET_REQUEST_IN5     => 0,
-			USE_RESET_REQUEST_IN6     => 0,
-			USE_RESET_REQUEST_IN7     => 0,
-			USE_RESET_REQUEST_IN8     => 0,
-			USE_RESET_REQUEST_IN9     => 0,
-			USE_RESET_REQUEST_IN10    => 0,
-			USE_RESET_REQUEST_IN11    => 0,
-			USE_RESET_REQUEST_IN12    => 0,
-			USE_RESET_REQUEST_IN13    => 0,
-			USE_RESET_REQUEST_IN14    => 0,
-			USE_RESET_REQUEST_IN15    => 0,
-			ADAPT_RESET_REQUEST       => 0
-		)
-		port map (
-			reset_in0      => system_pll_reset_source_reset,      -- reset_in0.reset
-			clk            => system_pll_sys_clk_clk,             --       clk.clk
-			reset_out      => rst_controller_003_reset_out_reset, -- reset_out.reset
-			reset_req      => open,                               -- (terminated)
-			reset_req_in0  => '0',                                -- (terminated)
-			reset_in1      => '0',                                -- (terminated)
-			reset_req_in1  => '0',                                -- (terminated)
-			reset_in2      => '0',                                -- (terminated)
-			reset_req_in2  => '0',                                -- (terminated)
-			reset_in3      => '0',                                -- (terminated)
-			reset_req_in3  => '0',                                -- (terminated)
-			reset_in4      => '0',                                -- (terminated)
-			reset_req_in4  => '0',                                -- (terminated)
-			reset_in5      => '0',                                -- (terminated)
-			reset_req_in5  => '0',                                -- (terminated)
-			reset_in6      => '0',                                -- (terminated)
-			reset_req_in6  => '0',                                -- (terminated)
-			reset_in7      => '0',                                -- (terminated)
-			reset_req_in7  => '0',                                -- (terminated)
-			reset_in8      => '0',                                -- (terminated)
-			reset_req_in8  => '0',                                -- (terminated)
-			reset_in9      => '0',                                -- (terminated)
-			reset_req_in9  => '0',                                -- (terminated)
-			reset_in10     => '0',                                -- (terminated)
-			reset_req_in10 => '0',                                -- (terminated)
-			reset_in11     => '0',                                -- (terminated)
-			reset_req_in11 => '0',                                -- (terminated)
-			reset_in12     => '0',                                -- (terminated)
-			reset_req_in12 => '0',                                -- (terminated)
-			reset_in13     => '0',                                -- (terminated)
-			reset_req_in13 => '0',                                -- (terminated)
-			reset_in14     => '0',                                -- (terminated)
-			reset_req_in14 => '0',                                -- (terminated)
-			reset_in15     => '0',                                -- (terminated)
-			reset_req_in15 => '0'                                 -- (terminated)
-		);
-
-	rst_controller_004 : component computer_system_rst_controller_003
-		generic map (
-			NUM_RESET_INPUTS          => 1,
-			OUTPUT_RESET_SYNC_EDGES   => "deassert",
+			NUM_RESET_INPUTS          => 2,
+			OUTPUT_RESET_SYNC_EDGES   => "none",
 			SYNC_DEPTH                => 2,
 			RESET_REQUEST_PRESENT     => 0,
 			RESET_REQ_WAIT_TIME       => 1,
@@ -2543,11 +2495,11 @@ begin
 		)
 		port map (
 			reset_in0      => arm_a9_hps_h2f_reset_reset_ports_inv, -- reset_in0.reset
-			clk            => system_pll_sys_clk_clk,               --       clk.clk
-			reset_out      => rst_controller_004_reset_out_reset,   -- reset_out.reset
+			reset_in1      => system_pll_reset_source_reset,        -- reset_in1.reset
+			clk            => open,                                 --       clk.clk
+			reset_out      => rst_controller_003_reset_out_reset,   -- reset_out.reset
 			reset_req      => open,                                 -- (terminated)
 			reset_req_in0  => '0',                                  -- (terminated)
-			reset_in1      => '0',                                  -- (terminated)
 			reset_req_in1  => '0',                                  -- (terminated)
 			reset_in2      => '0',                                  -- (terminated)
 			reset_req_in2  => '0',                                  -- (terminated)
@@ -2597,6 +2549,6 @@ begin
 
 	rst_controller_001_reset_out_reset_ports_inv <= not rst_controller_001_reset_out_reset;
 
-	rst_controller_002_reset_out_reset_ports_inv <= not rst_controller_002_reset_out_reset;
+	rst_controller_003_reset_out_reset_ports_inv <= not rst_controller_003_reset_out_reset;
 
 end architecture rtl; -- of Computer_System
